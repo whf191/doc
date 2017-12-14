@@ -1,0 +1,764 @@
+Configuring and securing PYTHON LDAP Applications Part 1
+--安全配置python ldap应用部分1
+
+This  article mini-series by Matt Butcher will look at the Python application programmers
+这篇文章一个小的连续作者是Matt Butcher 将看到用python程序接口的LDAP库,
+interface(API) for the LDAP libraries,and using this API,we will connect to our OpenLDAP server
+使用这个API，我们将连接到我的OpenLDAP服务
+and manipulate the directory information tree. More specifically,we will cover the following
+操作这个树目录信息. 更具体点，我们包含以下
+in this article series:
+文章列表：
+  Installing and configuring the Python-LDAP libray.  安装配置Python-LDAP库
+  Binding to an LDAP  directory. 绑定到LDAP目录
+  Comparing attributes between the client and server. 比较客户端和服务端的属性
+  Performing searches on the directory.在目录上执行搜索
+  Modifying the directory information tree with add,delete,and modify operations. 修改树目录信息用添加，删除，修改操作。
+  Modifying directory passwords.修改目录密码
+  Working with LDAP schemas.工程的LDAP模式
+
+This first part will deal with installation and configuration of the Python-LDAP library.We
+第一部分将论述Ptyhon-LDAP库的安装和配置。我们
+will the see how the binding operation is performed.
+将看到怎么执行一个绑定操作。
+
+Installing Python-LDAP
+安装Python-LDAP
+
+There are a couple of LDAP libraries  for Python,but the most popular is the Python-LDAP
+python的LDAP库有几个，但是更受欢迎的是Python-LDAP模块，
+module,which(as with the PHP API) uses the OpenLDAP C library as a base for providing 
+那些（比如用php api）用OpenLDAPC库就是提供 
+network access to an LDAP server。
+网络访问到LDAP server的基础。
+
+Like OpenLDAP,the Python-LDAP is Open Source.It works on Linux,Windows,Mac OS X,BSD,and
+像OpenLDAP,python-LDAP是开源的。它很好的工作在linux,Windows,mac OS X,BSD,和
+probably other UNIX operating systems as well (platforms that have both Python and OpenLDAP available).
+或许其它的 UNIX 操作系统（这个两个Python和OpenLDAP平台上都能用）
+The source code is available the official Python-LDAP webiste:http://python-ldap.sourceforge.net. Here pre-
+源码是可以得到的。在Python-LDAP官方网：http://python-ldap.sourceforge.net 这里
+compiled binaries for many platforms are available,but we will install the version in the Ubuntu repository.
+用编译好的二进制大多数平台是可用的，但是我们安装版本将用ubuntu的资源库。
+
+Beroce installing Python-LDAP,you will need to have the Python scripting language installed.Typically,
+在安装Python-LDAP前，你一定要完成python教程语言安装.
+this is installed by default on Ubuntu(and on most flavors of Linux).Installing Python-LDAP requires only one command:
+通常，这次安装默认用ubuntu(大多数流行的版本)。安装Python-LDAP只需要一条命令：
+  $ sudo apt-get install python-ldap
+
+This will choose the module or modules that match the installed Python version.That is,if you are running
+这里选择一个模块或从模块中匹配安装Python的版本。即，如果你运行的
+python 2.4 (the stable version,at the time of writing),this will install the python2.4-ldap package.
+python 2.4(稳定版，正在写的这个时期)，将安装python2.4-ldap包。
+
+The library,which consists of several python packages,will be installed into /usr/lib/python2.4/site-packages/.
+这个库，由那些python包组成，将安装到这里/usr/lib/python2.4/site-packages/.
+
+In Ubuntu,there is no need to run further configuration in order to make use of the Python-LDAP library.
+在ubuntu,这个制度里不需要进一步的配置去使用Python-LDAP库就可以了。
+We are ready to dive into the API.
+我们已经做准备好去了解这个API了。
+   
+   If you install by hand,either from source or from the binary packages,you may need to add the Python-LDAP
+   如果你安装通过手动，两者中选择源或二进制包，你也许需要添加python-LDAP
+   library to you Python path.See the Python documentation for details.
+   库到你python路径。详细看python的文档。
+   
+The Python-LDAP API is well documented.The documentation is available online at the official
+Python-Ldap API是个很好的文档。 文档在线可用在
+python-LDAP website:http://python-ldap.sourceforge.net/docs.shtml. You may find it more convenient
+官方python-LDAP站点:http://python-ldap.sourceforge.net/docs.shtml.你也许能找到更多有用的
+to download a copy of the documentation and use it locally。
+去下载一个文档副本并在本地使用它。
+
+	In previous versions of Ubuntu Python-LDAP documentation was available in the package python-ldap-doc,which could
+	在以前的ubuntu版本Python-LDAP 文档是可用的在python-ldap-doc包里，可以用apt-get
+	be installed with apt-get.
+    安装.
+
+Also,many of the Python-LDAP functions and objects have documentation strings that can be accessed from the Python interpreter like
+另外,python-LDAP的许多函数和对象都有文档字符串能通过python接口访问像这样: 
+this:
+    >>> print ldap.initialize.__doc__
+
+  Return LDAPObject instance by opening LDAP connection to
+  LDAP host specified by LDAP URL
+  
+  Parameters:
+  uri
+        LDAP URL containing at least connection scheme and hostport,
+        e.g. ldap://localhost:389
+  trace_level
+        If non-zero a trace output of LDAP calls is generated.
+  trace_file
+        File object where to write the trace output to.
+        Default is to use stdout.
+
+The documentation string usually contains a brief description of the function or object,and is a useful quick reference.
+文档字符串通常包含一个简短的描述函数或对象并是很有用快速的参考。
+
+Now that is package is installed,let's take a quick look at what was installed. The Python-LDAP package comes with nine
+现在包已经安装了。快速的看看安装了些啥子。Python-LDAP包由9个不同的模块：
+different modules:
+	
+	ldap:This is the main LDAP module.It contains the functions necessary for performing LDAP operations,such as binding,searching,
+	adding,and modifying.
+	主模块LDAP.它包含了必要的功能用执行LDAP操作，比如binding,searching,adding,and modifying.
+	
+	ldap.async:Python can do synchronous and asynchronous transactions.This module provides utilites that are useful when performing
+	asynchronous operations.
+	python能够同步和异步处理。这个模块有效提供了处理异步操作时很有用。
+	
+	ldap.cidict:This contains the cidict class,which is a case-insensitive dictionary.Although LDAP is case-insensitive when
+	it comes to attribute names,it is often necessary to perform case-insensitive operations on dictionary keys.
+	这个包含了cidict类，那些是case-insensitive字典。虽然LDAP有时候涉及到属性名称case-insensitive，它提供去字典键执行
+	case-insensitive操作
+	
+	ldap.modlist:Utility functions for creating modification records(for performing the LDAP modify operation) are in this package.
+	在包里创建一个改进的记录函数（处理LDAP修改操作）。
+	
+	ldap.filter:This module provides a couple of utility functions for creating LDAP search filters.
+	这个模块提供了几个功能用来创建LDAP 搜索过滤.
+	
+	ldap.sasl:Python-LDAP's SASL support is partially contained in this package.It is not documented in the online documentation,
+	but there are plenty of notes in the doc strings in the module.
+	在Python-LDAP包里对SASL包含了部分的支持。在线文档没有这个文档，但是模块里的文档字符串里有很多的注释。
+	
+	ldap.schema:This module contains classes that describe the subschema subentry records.It can be used to access schema information.
+	这个模块包含了很多类描述记录的子模式。能够使用它去访问模式信息.
+	
+	ldapurl:This module provides a class for generating and parsing LDAP URLs.
+	这个模块提供了一个类来解析LDAP URLs.
+	
+	ldif:This module is used to parse or write LDIF-formatted LDAP records.
+	这个模块用来解析或写入LDIF-formatted LDAP记录.
+	
+Most of the commonly used LDAP features are in the ldap module,and we will be focused mainly on using that.
+ldap模块里有大多数的LDAP特性，我们的重点是去使用它。
+Since many of the submodules have only a couple of functions,we will use them in passing but treat them as
+许多的submodules仅只有几个功能，我们将去使用它们但是对待它们将要
+separate objects of discussion.
+分开对象的讨论。
+	
+The Python interpreter(python) can be run interactively.Running Python in an interactive mode can be very useful
+python解析器能交互式运行。python运行在交互式模式能很好的
+for discovery and debugging.Further,since it prints useful information directly to the console,it can be usefful
+发现debugging.进一步，能直接打印有用的信息到控制台，它能够很好的
+for demonstration purposes.
+证明你的目的。
+
+In many of the examples below,the code is shown as it would be entered in the interactive shell.Here is an example:
+下面的几个例子，进入交互式shell下的编码显示.这里有几个例子:
+	>>> h = "Hello World"
+	>>> h
+	'Hello World'
+	>>> print h
+	Hello World
+	
+Lines that begin with >>> and ... are interprete rprompts  (similar to $ in shell).Examples with the >>> are run in the interpreter
+开始的行线是>>>和...是解析器符号（类似shell的$）.例子里的>>>是运行在交换式的解析器里。
+interactively.Some code,however,will be typed into a file(as usual).This code will not have lines beginning with the interpreter
+某些代码，然而，将类型写入一个文件（寻常的做法）。这里的代码将不用行线开始的解析提示。
+
+prompt.They tend to look more like this:
+注意看起来像这样子:
+	h = “Hello World”
+    print h
+
+Most of the time,features are introduced using the interpreter,but lengthier examples are done in the form of a Python script.
+大多数时候，特征引入时用解析器，但是长例子用python脚本来完成.
+
+Where it might be confusing,I will explicitly say in the text which of the two methods I am using.
+有些地方可能另人困惑，在文本里我将明确的说这两个方法我都会用.
+
+Connecting and Binding to the Directory
+
+Now that we have the library installed,we are ready to use the API.The Pthon-LDAP API connects and binds in
+现在我们的库已安装了，我们也准备好去用API。Python-LDAP API的两个步骤是connects和binds.
+two stages.Initializing the LDAP system is done with the ldap.initialine() function.The initialine() method returns
+LDAP系统的Initializing是ldap.initialine()的方法。initialine()方法返回一个
+
+an LDAPObject object,which contains methods for performing LDAP operations and retrieving information about the
+LDAPObject对象，包含了ldap选项处理的方法和检索关于LDAP的连接信息和事物。一个基本的初始化像这样:
+LDAP connection and transactions.A basic initialization is done like this:
+	>>> import ldap
+	>>> con = ldap.initialize('ldap://localhost') 
+
+The first line of this example imports the ldap module, that contains the initialize() method as well as the LDAPObject that we will 
+第一行这个例子导入了ldap模块，包含了initialize()返回的是LDAPObject对象 我们将
+make frequent use of.
+频繁的使用。
+	
+The second line initializes the LDAP code, and returns an LDAPObject that we will use to connect to the server. The initialize() 
+第二行初始化LDAP代码，返回一个LDAPObject我们将用来连接服务端。initialize()方法
+function takes a simple LDAP URL (protocol://host:port) as a parameter.	
+拿一个简单LDAP url地址(协议://主机:端口)就是一个参数。
+
+Sometimes, you may prefer to pass in simply host and port information. This can be done with the connect(host, port) function, that 
+有些时候，你也许更喜欢通过简单的主机和端口信息。这能用connect(host, port)防范完成,
+also returns an LDAPObject object. In addition, if you need to check or set any LDAP options, you should use the get_option() and 
+另外返回的都是LDAPObject对象。多说点，如果你需要检查或设置LDAP选项，你应该用get_option()和
+set_option() functions before binding. For instance, we can set the connection to require a TLS certificate by setting the 
+set_option()方法在绑定前。这个实例，我们能设置连接去要求一个TLS 证书 通过设置 OPT_X_TLS_DEMAND 选项:
+OPT_X_TLS_DEMAND option:	
+	>>> con.get_option(ldap.OPT_X_TLS_DEMAND)
+	0
+	>>> con.set_option(ldap.OPT_X_TLS_DEMAND, True)
+	>>> con.get_option(ldap.OPT_X_TLS_DEMAND)
+	1
+
+In most production environments, security is a major concern. As we have seen in previous chapters, one major component of security 
+大多数生成环境，安全是很重要的。正如我们以前的章节看到那样，一个主要部分的安全在网络基础的LDAP服务
+in network-based LDAP services is the use of SSL/TLS-based connections.
+用的SSL/TLS-based连接。
+
+There are two ways to get transport-layer security with the Python-LDAP module. The first is to connect to the LDAPS (LDAP over SSL) 
+Python-LDAP模块有有两个方法获的传输层的安全。第一个是连接到LDAPS(LDAP over SSL)端口。
+port. This is done by passing the correct parameter to the initialize() function. Instead of using the ldap:// protocol, which will 
+通过当前的参数放入initialize()方法。相反用ldap://协议，将
+make an unverified unencrypted connection to port 389, use an ldaps:// protocol, which will make an SSL connection to port 636 (you 
+尝试一个非加密的连接用的端口是389，用一个ldaps://协议，将尝试用一个SSL连接的到端口的636(
+can specify alternate an alternate port by appending a colon (:) and then the port number to the end of the URL).
+你可以追加一个冒号来代替，这个端口号在URL地址结尾处）.
+
+Or, instead of using LDAPS, you can perform a Start TLS operation before binding to the server:
+或者，反而用LDAPS,你绑定连接服务之前能用 一个Start TLS 选项
+
+	>>> import ldap
+	>>> con = ldap.initialize('ldap://localhost')
+	>>> con.start_tls_s()
+	
+Note that while the call to ldap.initialize() does not actually open a connection, the call to ldap.start_tls_s() does create a 
+注意当调用ldap.initialize()后实际上没有打开一个连接，调用ldap.start_tls_s() 才创建一个连接.
+connection.
+	
+Exceptions  异常
+
+Connecting to an LDAP server may result in the raising of an exception, so in production code, it is best to wrap the connection 
+连接到LDAP服务端可能导致抛出一个异常。所以在生产环境代码，它最好包装下这个连接尝试用一个try/except块内部。
+attempt inside of a try/except block. Here is a fragment of a script:
+这儿有一个脚本片段：
+	#!/usr/bin/env python
+
+	import ldap, sys
+
+	server = 'ldap://localhost'
+	l = ldap.initialize(server)
+	try:
+		l.start_tls_s()
+	except ldap.LDAPError, e:
+		print e.message['info']
+		if type(e.message) == dict and e.message.has_key('desc'):
+			print e.message['desc']
+		else:
+			print e
+		sys.exit()		
+
+In the case above, if the start_tls_s() method results in an error, it will be caught. The except clause checks if the returned 
+在上述情况，如果start_tls_s()方法结果是一个错误，它将被捕获。except 分别检查如果返回消息是一个字典
+message is a dict (which it should always be), and also checks if it has the description ('desc') field. If so, it prints the 
+（它应该总是这样），另外还要检查是否有描述字段。如果这样，他/她会打描述信息。
+description. Otherwise, it prints the entire message.		
+否则，它会打印整个信息。
+
+There are a few dozen exceptions that the Python-LDAP library might raise, but all of them are subclasses of the LDAPError class, 
+exceptions里有很多异常 Python-LDAP库可能会抛出，但是它们所有的是LDAPError class里的子类，
+and can be caught by the line:
+通过这行能够捕获:
+	except ldap.LDAPError, e:
+
+Within an LDAPError object, there is a dictionary, called message, which contains the 'info' and 'desc' fields. The 'info' field 
+里面的LDAPError对象,这里是一个字典，调用信息，那些包含了"info"和"desc"字段。“info”字段
+contains the information returned from the server, and the 'desc' field contains a description of the error.	
+包含服务端返回的信息，而"desc"字段包含错误的描述。
+
+In general, it is best to use try/except blocks around LDAP operations in order to catch any errors that might occur during 
+通常，它最好在命令里用try/except 块包住LDAP选项用来捕获处理过程中反生的任何错误。
+processing.
+
+Once we have an LDAPObject instance, we can bind to the LDAP directory. The Python-LDAP API supports both simple and SASL binding 
+一旦我们实例化LDAPObject对象，我们能够绑定到LDAP目录Python-LDAP API支持两者 simple和sasl方法的绑定,
+methods, and there are five different bind methods:
+这儿定义了5种不通的绑定方法:
+	
+	bind(): Takes three required parameters: a DN, a password (or credential, for SASL), and a string indicating what type of bind
+    拿三个需要的参数：一个DN，一个密码（or credential, for SASL），一个字符串表示什么类型的绑定方法去使用。
+	method to use. Currently, only ldap.AUTH_SIMPLE is supported. This is asynchronous. Example: con.bind(dn, pw, ldap.AUTH_SIMPLE）
+	当前，仅ldap.AUTH_SIMPLE被支持。这是一个异步的。例子：con.bind(dn, pw, ldap.AUTH_SIMPLE)
+	
+	bind_s(): This one is same as above, but it is synchronous, and returns  information about the status of the bind.
+	这个上面有些相同，它是同步的返回信息是关于绑定的状态
+	
+	simple_bind(): This performs a simple bind. This has two optional  parameters: DN and password. If no parameter is specified, 
+	处理一个简单的绑定。有两个选项参数：DN 和密码。如果没有指定参数
+	this will bind as  anonymous. This is asynchronous.
+	如果没有指定将绑定一个匿名用户。这是一个异步。
+	
+	simple_bind_s(): This is the synchronous version of the above.
+	和上面描述相似这是一个同步版本。
+	
+	sasl_interactive_bind_s(): This performs an SASL bind, and it takes two parameters: an SASL identifier and an SASL 
+	处理一个SASL绑定，他拿连个参数：一个SASL标识符和一个SASL认证字符串。
+	authentication string.
+	
+First, for many Python LDAP functions, including almost all of the LDAP operations, there are both synchronous and asynchronous 
+首先，很多python LDAP 方法，内置了差不多LDAP 选项，这儿两个同步和异步版本。
+versions. Synchronous versions, which will block until the server returns a result, have method names that end with _s.	
+同步版本，将阻塞到服务器返回结果为止，方法名字后面有一个_s.
+
+The other operations – those that do not end with _s – are asynchronous. An asynchronous message will begin an operation, and then 
+其它选项 - 那些没有_s的是异步。一个异步消息运算开始，然反返回控制给程序。
+return control to the program. The operation will continue in the background. It is the responsibility of the program to 
+这个操作将继续后台运行。在操作时程序的职责周期行对他进行检查
+periodically check on the operation to see if it has been completed.
+看他是否完成。
+
+
+Since they wait to return any results until the operation has been completed, synchronous methods will often have different return 
+由此，操作完成后大家等待结果返回，同步方法将提供不通的返回值
+values than their asynchronous counterparts. Synchronized methods may return the results obtained from the server, or they may have 
+。同步的方法也许得到了服务器上的结果，或者
+void returns. Asynchronous methods, on the other hand, will always return a message identifier. This identifier can be used to 
+返回一个空。异步方法，另方面，总返回一个消息标识符。这个消息符能够使用results选项访问。
+access the results of the operation.
+
+Here's an example of the different results for the two different forms of simple bind. First, the synchronous bind:
+这儿有个不同结果返回的例子两个不通来至于simple bind.首先，同步绑定：
+
+	>>> dn = "uid=matt,ou=users,dc=example,dc=com"
+	>>> pw = "secret"
+	>>> con.simple_bind_s( dn, pw ) 
+	(97, [])
+	>>>
+
+Notice that this method returns a tuple. Now, look at the asynchronous version:
+注意这个方法会会一个元组，现在，看下异步版本：
+
+	>>> con.simple_bind( dn, pw )
+	8
+	>>> con.result(8)
+	(97, [])
+	
+In this case, the simple_bind() method returned 8 – the message identification number for the result. We can use the result() method 
+这种情况，simple_bind()方法返回的8 - 消息表示数字是结果。我们能用result()方法
+to fetch the resulting information. The result() method returns a two-item tuple, where the first item is the status code (97 means 
+去获取结果信息。result()返回一个二元组，第一个选项是状态吗（97方法成功），
+success), and the second is a list of messages from the server. In this case, the list is empty.
+第二个是一个消息列表来至服务端。这种情况，列表是个空。
+	Notes on Getting Results
+	结果注意
+	There are two noteworthy caveats about fetching results. First, a particular result can only be fetched once. You cannot call 
+	这个地方有两个引人注意警告关于获取的结果。第一，一个详细的结果只能获取一次。
+	result() with the same message ID multiple times. Second, you can execute multiple asynchronous operations without checking the 
+	你不调用result()某些消息ID多次。第二，你能够执行更多的异步选项在外面检测及诶过。
+	results. The consequence of doing this is that all of the results will be stored until they are fetched. This consumes memory, 
+	结果，所有的结果将保存到他们被取走为止。被内存销毁，
+	and can lead to confusing results if result() or result( ldap.RES_ANY ) is called.
+	可能导致困惑结果如果result() 或result( ldap.RES_ANY ) 被称为回调。
+	
+Later in this chapter, we will see more sophisticated uses of synchronous and asynchronous methods, but for now we will continue 
+稍后一章，我们将看到更多复杂的使用同步和异步方法，但现在我将继续看绑定方法。
+looking at methods of binding.
+		
+The bind() and bind_s() methods work the same way, but they require a third parameter, specifying which sort of authentication 
+bind() 和 bind_s() 方法工作相同的方法，但是他们需要三个参数， 指定一个分类认证机制来使用。
+mechanism to use. Unfortunately, at the time of this writing, only the AUTH_SIMPLE form of binding (plain old simple bind) is 
+不幸的，在写这个时期，只有AUTH_SIMPLE来至绑定（老的简单绑定）支持的这种机制
+supported by this mechanism:		
+	>>> con.bind_s( dn, pw, ldap.AUTH_SIMPLE ) 
+	(97, [])	
+		
+This performs a simple bind to the server.
+这执行一个简单的绑定到服务端。
+
+Exceptions
+异常
+A bind can fail for a number of reasons, the most common being that the connection failed (the CONNECT_ERROR exception) or 
+一个绑定能够失败会是原因是一个数字，大多数会连接失败（连接错误异常）或
+authentication failed (INVALID_CREDENTIALS). In production code, it is a good idea to check for these exceptions using try/except 
+认证失败（INVALID_CREDENTIALS）。在生成代码，一个好的注意去检查这个异常用 try/except块
+blocks. By checking for them separately, you can distinguish between, say, authentication failures and other, more serious 
+他们个别的检查，你能够区分两者，说，认真失败和其它，更严重的失败：
+failures:	
+		
+	l = ldap.initialize(server)
+	try: 
+		#l.start_tls_s()
+		l.bind_s(user_dn, user_pw)
+	except ldap.INVALID_CREDENTIALS:
+		print "Your username or password is incorrect."
+		sys.exit()
+	except ldap.LDAPError, e:
+		if type(e.message) == dict and e.message.has_key('desc'):
+			print e.message['desc']
+		else: 
+			print e
+		sys.exit()
+		
+In this case, if the failure is due to the user entering the wrong DN or password, a message to that effect is printed. Otherwise, 
+这种情况，如果失败是预期指向user输入了错误的DN和密码，一个消息内容将会被打印。
+the error description provided by the LDAP library is printed.
+否则错误描述会由LDAP库输出。
+
+SASL is a robust authentication mechanism, but the flexibility and adaptability of SASL comes at the cost of 
+SASL是一个健壮的认证机制，但是SASL的灵活性和实用性以它的额外的复杂性为代价。
+additional complexity.
+
+This additional complexity is evident in the Python-LDAP module. SASL binding is implemented differently than 
+Python-LDAP模版里额外复杂度是很明显的。SASl绑定的实现与其它绑定方法不同
+the other bind methods. First, there is no asynchronous version of the SASL bind method (not all thread safety 
+首先，这不是一个异步版本的SASL绑定方法
+issues have been worked out in this module, yet).
+（在这个模版里不是所有的线程安全被计算，然而）
+	
+	Since the SASL code is not as stable as the rest of the API, you may want to stick to simple binding (with 
+	由于SASL代码的API不太稳定，你就想用简单的绑定(SSL/TLS 的保护)
+	SSL/TLS protection) rather than rely upon SASL support.
+	宁可不依赖SASL的支持.
+
+There is only one SASL binding method, sasl_interactive_bind_s(). This method takes two arguments. The first 
+这里只有一个SASL绑定的方法，sasl_interactive_bind_s()。这个方法去取两个参数。第一个是DN字符串。
+is a DN string. It is almost always left blank, since with SASL, we usually authenticate with some other 
+左边空处它的差不多总是这样，因为SASL，我们通常的认证和其它认证相同。
+identifier. The second argument is an sasl object (or a subclass of an sasl object).
+第二个参数是一个sasl对象（一个sasl对象的子类）
+
+
+The sasl object contains a dictionary of information that the SASL subsystem uses to perform authentication. 
+sasl对象包含一个信息字典 SASL使用子系统去处理认证。
+Each different SASL mechanism is implemented as a class that is a subclass of the sasl object. There are a 
+每个不同的SASL原理的实现都是一个类并且一个sasl对象的子类。
+handful of different subclasses that come with the Python-LDAP module, though you can create your own if you 
+这儿有少量不同的子类 伴随Python-LDAP模版，虽然你可以创建你自己的如果你需要一个不同原理的支持。
+need support for a different mechanism.
+
+	cram_md5: This class implements the CRAM-MD5 SASL mechanism. A new cram_md5 object can be created with a 
+	这个类工具CRAM-MD5 SASL 原理。一个新的cram_md5对象能创建一个构造器通过
+	constructor that passes in the authentication ID, a password, and an optional authorization ID.
+	认证ID，一个密码，和一个随意的认证ID。
+	
+	digest_md5: This implements the DIGEST-MD5 SASL mechanism. Like  cram_md5(), this object can be 
+	这个工具DIGEST-MD5 SASL原理。像cram_md5()，这个对象能构造一个认证ID，一个密码，和一个随意认证ID。
+	constructed with an authentication ID, a  password, and an optional authorization ID.
+
+	gssapi: This implements the GSSAPI mechanism, an its constructor has only the optional authorization ID. 
+	这个工具GSSAPI原理，它仅构造随意的认证ID
+	It is used to perform Kerberos V authentication.
+	
+	external: This implements the EXTERNAL SASL mechanism, that uses an underlying transport security 
+	这个EXTERNAL SASL原理，用了一个潜在的安全层原理
+	mechanism (like SSL/TLS). Its constructor only takes the optional authorization ID.
+	（像SSL/TLS）。它构造仅取一个随意的认证ID。
+	
+Our LDAP server is configured to allow DIGEST-MD5 SASL connections, so we will walk through an example of 
+我们的LDAP服务端的配置去允许DIGEST-MD5 SASL连接，所以我们将连下虽然这个例子处理一个短的SASL认证。
+performing this sort of SASL authentication.
+
+	>>> import ldap
+	>>> import ldap.sasl
+	>>> user_name = "matt"
+	>>> pw = "secret"
+	>>> 
+	>>> con = ldap.initialize("ldap://localhost")
+	>>> auth_tokens = ldap.sasl.digest_md5( user_name, pw )
+	>>> 
+	>>> con.sasl_interactive_bind_s( "", auth_tokens )
+	0
+
+To begin with, we import the ldap and ldap.sasl packages, and we store the user name and password information 
+在开始的时，我们导入了ldap和ldap.sasl包，在这一对变量里我们存储了用户名和密码信息
+in a couple of variables.
+
+After initializing a connection, we need to create a new sasl object – on that will contain the information 
+之后初始化了一个连接，我们需要创建一个新的sasl对象 - 我们将包含必要信息
+necessary to perform DIGEST-MD5 authentication. We do this by constructing a new digest_md5 object:
+去处理DIGEST-MD5认证。我们构造了一个新的digest_md5对象：
+
+	>>> auth_tokens = ldap.sasl.digest_md5( user_name, pw )
+	
+Now, auth_tokens points to our new SASL object. Next, we need to bind. This is done with the 
+现在，auth_tokens点在我们新的SASL对象。下一步，我们需要去绑定。完成LDAPObject的
+sasl_interactive_bind_s() method of the LDAPObject:
+sasl_interactive_bind_s()方法
+
+	>>> con.sasl_interactive_bind_s( "", auth_tokens 	
+	
+If a SASL interactive bind is successful, then this method will return an integer. Otherwise, an 
+如果一个SASL交互绑定成功，然后这个方法将返回一个整数。否则，
+INVALID_CREDENTIALS exception will be raised:	
+INVALID_CREDENTIALS 异常将被抛出：
+
+	>>> auth_tokens = ldap.sasl.digest_md5( "foo", pw )
+	>>> try:
+	...   con.sasl_interactive_bind_s( "", auth_tokens )
+	... except ldap.INVALID_CREDENTIALS, e :
+	...   print e
+	... 
+	{'info': 'SASL(-13): user not found: no secret in database', 'desc': 'Invalid credentials'}
+
+In this case, the user foo was not found in the SASL DB, and the SASL subsystem returned an error.	
+这个情况，用户foo没有找到SASL DB，SASL子系统返回一个错误。
+
+The unbind() method of the LDAPObject class unbinds and closes the connection to the LDAP server. While there 
+unbind()方法解开LDAPObject类并关闭连接到LDAP服务端。虽然这里的
+is an unbind_s() method, it doesn't matter which one you use – both are synchronous.	
+unbind_s()方法，它这里没啥关系你选择一个使用 - 两者都是同步的。
+
+>>> con.unbind()
+>>>
+
+The server receives an unbind operation, and then the client closes the connection.	
+服务端接收了解绑操作，然而客户端关闭了连接。
+
+But what if you want to switch users, while using the same connection? In most cases, another call to one of 
+但是 什么 如果你想去切换用户，虽然使用这些连接？大多情况，另外调用一个
+the binding methods will work. But with the sasl_interactive_bind_s() method, you will need to close the 
+绑定方法去工作。但是这里的 sasl_interactive_bind_s()方法，你需要把连接关闭
+connection, and then reconnect in order to rebind.
+规则里他们重连要重新绑定。
+
+As a matter of practice, you should always unbind from the server when you are done using it. This can be done 
+经过一个实践，你在使用完它后你应该总是解开服务端。
+conveniently using a try/finally clause. Here's a snippet of a larger script exemplifying the use of a 
+可以这样使用一个try/finally子句便利的完成。这儿有一个大的脚本片段例子使用了一个
+try/finally block (with try/except blocks nested inside).
+try/finally 块（用try/except内部嵌套块）	
+	
+	try:
+    l = ldap.initialize(server)
+    try:
+        l.bind_s(user_dn, user_pw)
+    except ldap.INVALID_CREDENTIALS:
+        print "Your username or password is incorrect."
+        sys.exit()
+
+    except ldap.LDAPError, e:
+        if type(e.message) == dict and e.message.has_key('desc'):
+            print e.message['desc']
+        else:
+            print e
+        sys.exit()
+        # Do some LDAP work here...
+	finally:
+		print "Doing unbind."
+		l.unbind()
+	
+In this case, the finally block makes sure that regardless of what happens – whether the operations succeed or 
+这种情况，finally块确信无论反生啥子-不管操作成功或失败
+fail – an LDAP unbind() is always called at the end.	
+一个LDAP unbind()总是在最后调用。
+
+We now have enough information to create a small program.
+我们现在有足够的信息去创建一个简单的应用程序。
+
+One issue, when binding with SASL, is to know what DN you are using. This is a result of the fact that most 
+一个问题，绑定SASL时，你要去知道DN你使用的是啥子。这是一个实际的结果 大多数forms的sasl绑定不晓得用DNs去
+forms of SASL bind do not use DNs to authenticate. They use other forms of user identification, and OpenLDAP 
+认证。他们使用其它forms用户认证，OpenLDAP
+maps those to a DN based on rules in the slapd.conf configuration.	
+的管理分析与规划系统用配置文件slapd.conf上的规定的一个基础DN。
+
+We will create a simple script, using the commands introduced above, plus the simple whoami_s() method, to do 
+我们将创建一个简单的脚本，用前面介绍的命令，加上简单的whoami_s()方法，
+a SASL bind, and then report the DN of the user once the bind is complete.
+一个SASL 绑定，于是报告一个DN的用户完成一次绑定。
+
+	Who Am I?
+	我是谁？
+	The whoami_s() method implements the LDAP Who Am I Extended Operation (RFC 4532). It is used to get the DN 
+	whoami_s()工具方法 LDAP我是谁选项的扩展（RFC 4532）。它去获取当前用户的一个DN
+	of the current user.
+	
+	
+The simple version of the script we do here will only try the SASL DIGEST-MD5 mechanism, but such a script 
+简单的版本脚本 我们这里将尝试SASL DIGEST-MD5原理，但是
+could be easily extended to work with other SASL mechanisms. Here is our script, called get_sasl_dn.py
+这样的一个脚本能易于扩展工作上其它的SASL原理。这我们的脚本，调用get_sasl_dn.py
+
+	#!/usr/bin/env python
+	#
+	# A short script to print DN information about a SASL user.
+
+	import ldap, ldap.sasl
+	import sys, getpass
+
+	user_name = None
+	pw = None
+
+	usage="""%s [username]
+
+	Log in as a SASL user and get the user's DN.
+
+	If a username is specified, this will be used as the SASL ID. 
+	Otherwise,the username will be retrieved from the 
+	environment.""" % sys.argv[0]
+
+	if len(sys.argv) > 1:
+		if sys.argv[1] == "-h" or sys.argv[1] == "--help":
+			print usage
+			sys.exit()
+		user_name = sys.argv[1]
+	else:
+		user_name = getpass.getuser()
+
+	pw = getpass.getpass("Password for %s: " % user_name)
+
+	try:
+		con = ldap.initialize("ldap://localhost")
+		auth_tokens = ldap.sasl.digest_md5( user_name, pw )
+
+		try:
+			con.sasl_interactive_bind_s( "", auth_tokens )
+			sys.stdout.write(con.whoami_s())
+			sys.stdout.write("n")
+		except ldap.LDAPError, e:
+			sys.stderr.write("Fatal Error.n")
+			if type(e.message) == dict:
+				for (k, v) in e.message.iteritems():
+					sys.stderr.write("%s: %sn" % (k, v))
+			else:
+				sys.stderr.write("Error: %sn" % e.message);
+
+			sys.exit()
+	finally:
+		try:
+			con.unbind()
+		except ldap.LDAPError, e:
+			pass
+
+The beginning is just a boilerplate Python script. We need to import the ldap and ldap.sasl libraries for the 
+开始前这是一个样本python脚本。我们需要导入ldap和ldap.sasl库让LDAP工作。
+LDAP work. We will need sys to get access to the standard error output, and we will use the getpass library to 
+我们将需要sys去获取访问标错错误输出，我们将使用getpass库去
+get user and password information.
+得到用户和密码信息。
+
+Next, we declare a few variables and write some usage information, which the user can see by running:
+下一步，我们声明一个很少的变量和写一些使用信息，用户能够看到那些在运行：
+
+	get_sasl_dn.py --help
+
+The next thing to do is get the user name and password information. This is done in the following bit of code:
+下不情况去得到用户名和密码信息。这下面有完成后的编码：
+	if len(sys.argv) > 1:
+    if sys.argv[1] == "-h" or sys.argv[1] == "--help":
+        print usage
+        sys.exit()
+    user_name = sys.argv[1]
+	else:
+		user_name = getpass.getuser()
+
+	pw = getpass.getpass("Password for %s: " % user_name)
+
+First, we check to see if the argument list passed in from the command line (sys.argv) has any information. 
+首先，我们检查看看是否参数列表从命令行（sys.argv）的任何信息
+Since the program name is the first item, we need to know if the list has more than one item.
+由于程序名字是第一个是项目，我们需要知道这个列表比一行更多。
+
+If it does, then we check to see if either the -h or --help flags were set, in which case we just want to 
+如果它是真的，然而我们查看是否有-h或--help标记的设置，在那些情况我们正好想
+print usage information and exit. But if neither of those are set, we assume the second argument (sys.argv[1]) 
+打印使用信息和退出。但是如果这里没有设置，我们假定第二个参数
+is the user name.
+是用户名。
+
+If no arguments were specified on the command line, we use getpass.getuser() to get user information from the 
+如果在命令行没有参数指定，我们使用getpass.getuser()获取用户信息来至潜在的环境。
+underlying environment. On a UNIX or Linux system, this returns the name of the shell user.
+在unix或linux系统，返回shell用户名。
+
+After we have the user name, we get the password by getpass.getpass(), which prompts the user to enter a 
+之后我们的用户名，我们获得密码通过getpass.getpass()，提示用户输入一个密码。
+password. Now we have the information we need to perform a SASL bind to the LDAP server.
+现在我们已有的信息我们需要去处理一个SASL的绑定到LDAP服务端。
+
+The next step is to connect to LDAP. We want to wrap all of this in a try/finally block:
+下一步去连接LDAP。我们在一个try/finally 块中包装全部：
+
+	try:
+    con = ldap.initialize("ldap://localhost")
+    auth_tokens = ldap.sasl.digest_md5( user_name, pw )
+
+    # A few lines removed....
+
+	finally:
+		try:
+			con.unbind()
+		except ldap.LDAPError, e:
+			pass
+
+A few lines were removed from the above. We will get back to those in a moment.
+在上面做了一个少量的移除。在这个片段我们将返回到这里。
+
+The first few lines of the section above (after the try: ) initialize the LDAPObject, and then create the 
+首先上面切断的少量行（try:以后）初始化LDAPObject，然而创建
+digest_md5 class.
+digest_md5类。
+
+With this try/finally block, we know that an unbind() will be done whether the program succeeds or encounters 
+这个try/finally块，我们晓得一个unbind()将完成无论程序成功或遭遇一个错误。
+an error. Note that the nested try/except block in the finally clause just ensures that if the unbind raises 
+注意嵌套的try/except块在finally子句刚好确定 是否解开抛出一个异常，
+an exception, the user won't have to see an ugly stack trace.
+用户不想看到这个丑陋的栈跟踪.
+
+Now for the lines that were missing in the example above:
+现在这个行有上述失踪的例子：
+	try:
+		con.sasl_interactive_bind_s( "", auth_tokens )
+		sys.stdout.write(con.whoami_s())
+		sys.stdout.write("n")
+	except ldap.LDAPError, e:
+		sys.stderr.write("Fatal Error.n")
+		if type(e.message) == dict:
+			for (k, v) in e.message.iteritems():
+				sys.stderr.write("%s: %sn" % (k, v))
+		else:
+			sys.stderr.write("Error: %sn" % e.message);
+
+		sys.exit()
+  
+This try/except block does the hard work. First, it does a synchronous bind to the server, using the 
+这个does块努力的工作，首先，它是一个同步绑定到服务端，使用
+digest_md5 object (named auth_tokens) that was created on the lines above.
+digest_md5对象(名字 auth_tokens)上述行上创建。
+
+If the bind fails, an exception will be thrown (which will be caught by the except clause below). But if it 
+如果绑定失败，异常将抛出（在子句下面捕获异常）。但是如果它成功，
+succeeds, then the script will write out the DN of the connected user:
+脚本将写入连接用户的DN：
+	sys.stdout.write( con.whoami_s() )
+
+The con.whoami_s() method performs the LDAP Who Am I extended operation, and then returns the DN as a string. 
+这个con.whoami_s()方法执行LDAP我是谁的扩展选项，返回一个DN的字符串。
+This is then written to the standard output for the program.
+这儿程序写入到标准输出。
+
+Again, any errors in the LDAP Who Am I operation will be caught by the except clause.
+再次，LDAP我是谁的选项的任何错误将被子句异常捕获。
+
+Here's an example of what the output looks like for a successful run of the program:
+这个有个例子输出了写东西看起来像一个成功运行的程序:
+	$ ./get_sasl_dn.py matt
+	Password for matt: 
+	dn:uid=matt,ou=users,dc=example,dc=com
+  
+On the command line, the program has one parameter (matt). This will be stored as sys.argv[1], and assigned by 
+在命令行上，程序完成一个参数（matt）.这将存储的是sys.argv[1],
+
+the script to the user_name variable. Then, getpass.getpass() prompts for the password (Password for matt:). 
+指定通过这脚本的user_name变量。然而，getpass.getpass()提示密码（Password for matt:）。
+The password is not echoed back to the terminal.  
+这个密码不会重复返回到终端。
+
+Finally, once the SASL authentication and the whoami_s() method are run, the DN is printed to the standard
+最后，一次SASL认证和whoami_s() method的运行，DN打印到标准输出：dn:uid=matt,ou=users,dc=example,dc=com.
+output: dn:uid=matt,ou=users,dc=example,dc=com.
+
+Now we are comfortable binding and unbinding from the directory, and have looked at some basic strategies for 
+现在我们舒服的绑定和取消绑定来至目录，完成看到了一些基础的策略
+handling connections and exceptions. We are ready to move on to other LDAP operations.
+处理连接和异常。我们准备好移动其它LDAP操作。
+
+
