@@ -1,0 +1,482 @@
+socket — Low-level networking interface
+socket - 低级别的网络接口
+
+This module provides access to the BSD socket interface. It is available on all modern Unix systems, Windows, 
+这个模块规定访问BSD socket接口。它可以应用在unix系统，Windows，
+Mac OS X, BeOS, OS/2, and probably additional platforms.
+Mac OS X, BeOS, OS/2,和其它平台
+
+Note Some behavior may be platform dependent, since calls are made to the operating system socket APIs
+注意 某些平台可能有依赖，因为调用成功要操作系统的socket apis
+
+For an introduction to socket programming (in C), see the following papers: An Introductory 4.3BSD 
+介绍下socket程序（在c）,看下面的解释:一个介绍了4.3BSD
+Interprocess Communication Tutorial, by Stuart Sechrest and An Advanced 4.3BSD Interprocess Communication 
+进程间通信的教程，by Stuart Sechrest and An Advanced 4.3BSD 进程间的通信教程，
+Tutorial, by Samuel J. Leffler et al, both in the UNIX Programmer’s Manual, Supplementary Documents 1 
+by Samuel J. Leffler et al,unix 程序手册，补充文档1
+(sections PS1:7 and PS1:8). The platform-specific reference material for the various socket-related system 
+具体平台的重要参考为了多种相关系统的调用
+calls are also a valuable source of information on the details of socket semantics. For Unix, refer to the 
+另外细节上的多种源信息的socket语义。unix,参考
+manual pages; for Windows, see the WinSock (or Winsock 2) specification. For IPv6-ready APIs, readers may 
+手册页；windows,查看winsock说明书。IPv6-ready APIs，
+want to refer to RFC 3493 titled Basic Socket Interface Extensions for IPv6.
+读者可能想要参考RFC 3493主题基础socket据接口扩展IPv6.
+
+The Python interface is a straightforward transliteration of the Unix system call and library interface for 
+pytohn接口是一个简单直译Unix系统调用和库接口的socket 
+sockets to Python’s object-oriented style: the socket() function returns a socket object whose methods 
+python是安装面向对象设计的：socket()函数返回一个对象的方法
+implement the various socket system calls. Parameter types are somewhat higher-level than in the C 
+实现了多个系统的调用。参数类型比C接口有点高级：
+interface: as with read() and write() operations on Python files, buffer allocation on receive operations is 
+Python的文件操作read()和 write(),接收操作分配的缓冲区是自动的，
+automatic, and buffer length is implicit on send operations.
+发送给操作上缓冲去是不可见的。
+
+Socket addresses are represented as follows: A single string is used for the AF_UNIX address family. A pair 
+socket地址如下描绘:一个单一字符串是使用AF_UNIX地址族。
+(host, port) is used for the AF_INET address family, where host is a string representing either a hostname 
+一对（主机，端口）是使用AF_INET地址族，主机是一个字符串或代表任意一个主机名
+in Internet domain notation like 'daring.cwi.nl' or an IPv4 address like '100.50.200.5', and port is an 
+网络域符号像这也‘daring.cwi.nl’ 或一个IPV4地址像这样'100.50.200.5'，端口是一个整数。
+integer. For AF_INET6 address family, a four-tuple (host, port, flowinfo, scopeid) is used, where flowinfo 
+AF_INET6地址族，一个四元组（host, port, flowinfo, scopeid）来使用，
+and scopeid represents sin6_flowinfo and sin6_scope_id member in struct sockaddr_in6 in C. For socket module 
+范围代表sin6_flowinfo和sin6_scope_id的成员 结构体是sockaddr_in6的C。socket模块方法
+methods, flowinfo and scopeid can be omitted just for backward compatibility. Note, however, omission of 
+省略了向后兼容性。注意，无论如何，
+scopeid can cause problems in manipulating scoped IPv6 addresses. Other address families are currently not 
+在操纵IPv6地址范围的疏忽会引起问题。其它地址族当前不支持
+supported. The address format required by a particular socket object is automatically selected based on the 
+地址格式必须经过一个特别socket对象的认证
+address family specified when the socket object was created.
+地址族的规定这时socket对象创建的。
+
+For IPv4 addresses, two special forms are accepted instead of a host address: the empty string represents INADDR_ANY, and 
+IPv4地址，主机地址反而接受两个特殊的forms:空字符串描述INADDR_ANY
+
+the string '<broadcast>' represents INADDR_BROADCAST. The behavior is not available for IPv6 for backward compatibility, 
+和字符串'<broadcast>' 描述INADDR_BROADCAST。反应了IPv6不可用不向后兼容，
+therefore, you may want to avoid these if you intend to support IPv6 with your Python programs.
+因此，你可能想避免这些否则你打算你的python程序支持IPv6.
+
+If you use a hostname in the host portion of IPv4/v6 socket address, the program may show a nondeterministic behavior, as 
+如果你在IPv4/v6的socket地址的部分主机使用了一个主机名，程序可能显示一个不确定的行为，
+Python uses the first address returned from the DNS resolution. The socket address will be resolved differently into an 
+python用第一个地址的dns解析返回。socket地址将解决不同写入一个真实的IPv4/v6地址，
+actual IPv4/v6 address, depending on the results from DNS resolution and/or the host configuration. For deterministic 
+结果的依赖来至dns解析或者主机的配置。
+behavior use a numeric address in host portion.
+确定你的做法主机部分用的是数字地址。
+
+New in version 2.5: AF_NETLINK sockets are represented as pairs pid, groups.
+新版本2.5：AF_NETLINK sockets代表一对pid，groups.
+
+New in version 2.6: Linux-only support for TIPC is also available using the AF_TIPC address family. TIPC is an open, 
+新版本2.6：linux-only 支持 TIPC 另外可以使用的AF_TIPC地址族。TIPC是一个空旷的，
+non-IP based networked protocol designed for use in clustered computer environments. Addresses are represented by a 
+集群计算机环境有意这么使用非-IP 基础网络协议。地址代表是一个元组，
+tuple, and the fields depend on the address type. The general tuple form is (addr_type, v1, v2, v3 [, scope]), where:
+地址类型字段依赖。(addr_type, v1, v2, v3 [, scope])普通的元组，where:
+
+	ddr_type is one of TIPC_ADDR_NAMESEQ, TIPC_ADDR_NAME, or TIPC_ADDR_ID.
+	scope is one of TIPC_ZONE_SCOPE, TIPC_CLUSTER_SCOPE, and TIPC_NODE_SCOPE.
+	If addr_type is TIPC_ADDR_NAME, then v1 is the server type, v2 is the port identifier, and v3 should be 0
+	If addr_type is TIPC_ADDR_NAMESEQ, then v1 is the server type, v2 is the lower port number, and v3 is the upper port number.
+	If addr_type is TIPC_ADDR_ID, then v1 is the node, v2 is the reference, and v3 should be set to 0.
+
+All errors raise exceptions. The normal exceptions for invalid argument types and out-of-memory conditions can be raised; 
+所有错误抛出异常，无效的参数类型和内存移除都会抛出正常的异常；
+errors related to socket or address semantics raise the error socket.error.
+相关的错误socket或地址段抛出错误socket.error.
+
+Non-blocking mode is supported through setblocking(). A generalization of this based on timeouts is supported through 
+blocking模式支持setblocking().超时支持settimeout().
+settimeout().
+
+The module socket exports the following constants and functions:
+这个socket模块输出一下常量和方法：
+exception socket.error
+	This exception is raised for socket-related errors. The accompanying value is either a string telling what went wrong 
+	这个异常将抛出一个socket-相关错误。随同会出现任意之一字符串的错误或
+	or a pair (errno, string) representing an error returned by a system call, similar to the value accompanying 
+	一对（errno,string）代表通过系统调用的错误返回，类似的任意一个os.error值。
+	os.error. See the module errno, which contains names for the error codes defined by the underlying operating system.
+	看这个模块错误码，通过潜在的操作系统定义了不通的错误码包含的名称。
+	Changed in version 2.6: socket.error is now a child class of IOError.
+	版本2.6的变化：socket.error现在是一个子类的IOError.
+	
+exception socket.herror
+	This exception is raised for address-related errors, i.e. for functions that use h_errno in the C API, including 
+	这个异常抛出地址相关的错误，i.e. 这个功能用了h_errno在这个C API，
+	gethostbyname_ex() and gethostbyaddr().
+	包含了gethostbyname_ex() and gethostbyaddr().
+	The accompanying value is a pair (h_errno, string) representing an error returned by a library call. string 
+	伴随的值是一对（h_errno,string）表现了一个错误返回是通过库调用。
+	represents the description of h_errno, as returned by the hstrerror() C function.
+	字符串代表h_errno的描述，返回通过的hstrerror() c函数。
+	
+exception socket.gaierror
+	This exception is raised for address-related errors, for getaddrinfo() and getnameinfo(). The accompanying value is a 
+	这个异常报错地址相关错误，getaddrinfo() and getnameinfo()。相关的值体现为一对
+	pair (error, string) representing an error returned by a library call. string represents the description of error, as 
+	（error,string）这对错误的返回是通过一个库的调用。字符串表达了错误的描述，
+	returned by the gai_strerror() C function. The error value will match one of the EAI_* constants defined in this
+	返回是同股过c函数的gai_strerror()。这个错误值将匹配一个EAI_*常量的的定义在模块里。
+	module.
+
+exception socket.timeout
+	This exception is raised when a timeout occurs on a socket which has had timeouts enabled via a prior call to 
+	这个异常在一个socket上发生的超时，那个超时在访问前调用了settimeout()。
+	settimeout(). The accompanying value is a string whose value is currently always “timed out”.
+	这相关值是一个字符串，其值目前总是“timed out”.
+
+	New in version 2.3.
+
+socket.AF_UNIX
+socket.AF_INET
+socket.AF_INET6
+	These constants represent the address (and protocol) families, used for the first argument to socket(). If the 
+	这里的常量代理地址（协议）族，第一个参数使用在socket().
+	AF_UNIX constant is not defined then this protocol is unsupported.
+	如果AF_UNIX常量没有被定义，那么这个协议是不被支持的.
+	
+socket.SOCK_STREAM
+socket.SOCK_DGRAM
+socket.SOCK_RAW
+socket.SOCK_RDM
+socket.SOCK_SEQPACKET
+	These constants represent the socket types, used for the second argument to socket(). (Only SOCK_STREAM and 
+	这里的常量表达为socket的类型，用在第二个参数的socket().()
+	SOCK_DGRAM appear to be generally useful.)
+	(仅SOCKET_STREAM和SOCK_DGRAM通常显得有用.)
+	
+SO_*
+socket.SOMAXCONN
+MSG_*
+SOL_*
+IPPROTO_*
+IPPORT_*
+INADDR_*
+IP_*
+IPV6_*
+EAI_*
+AI_*
+NI_*
+TCP_*
+	Many constants of these forms, documented in the Unix documentation on sockets and/or the IP protocol, are also 
+	这儿个许多常量，socket和ip协议记录在unix文档里，
+	defined in the socket module. They are generally used in arguments to the setsockopt() and getsockopt() methods of 
+	另外还定义了socket模块。他们通用使用的参数是socket对象的 setsockopt() 和 getsockopt()方法。
+	socket objects. In most cases, only those symbols that are defined in the Unix header files are defined; for a few 
+	大多情况，这些符号定义在Ｕｎｉｘ头文件；少许符号，
+	symbols, default values are provided.
+	默认值是被提供的。
+
+SIO_*
+RCVALL_*
+	Constants for Windows’ WSAIoctl(). The constants are used as arguments to the ioctl() method of socket objects.
+	这里的常量是ｗｉｎｄｏｗｓ的WSAIoctl（）．常量的使用参数是ｓｏｃｋｅｔ对象的ioctl() 方法
+	New in version 2.6.
+	新版本２.６.
+	
+TIPC_*
+	TIPC related constants, matching the ones exported by the C socket API. See the TIPC documentation for more 
+	TIPC相关常量，匹配通过一个Ｃ　socket　ａｐｉ的一次输出。查看TIPC文档获取更多信息．
+	information.
+
+	New in version 2.6.
+	新版本２.６.
+
+socket.has_ipv6
+	This constant contains a boolean value which indicates if IPv6 is supported on this platform.
+	这个常量包含了一个布尔值，其标志者ＩＰｖ６是否在平台上被支持
+	New in version 2.3.	
+	新版本２.６.
+
+socket.create_connection(address[, timeout[, source_address]])
+	Connect to a TCP service listening on the Internet address (a 2-tuple (host, port)), and return the socket object. 
+	通过网络地址（ａ　２－元组（主机，端口））连接到一个ｔｃｐ的监听服务，并返回一个ｓｏｃｅｋｔ对象。
+	This is a higher-level function than socket.connect(): if host is a non-numeric hostname, it will try to resolve it 
+	相比socket.connect()是一个高级的函数:如果主机是一个非正常的主机名数字，它将尝试AF_INET和AF_INET6去解决它
+	for both AF_INET and AF_INET6, and then try to connect to all possible addresses in turn until a connection succeeds. 
+	尝试连接所有地址直到成功。
+	This makes it easy to write clients that are compatible to both IPv4 and IPv6.
+	使用它易于编写客户端并兼容IPv4和IPv6.
+	Passing the optional timeout parameter will set the timeout on the socket instance before attempting to connect. If 
+	socket实例化前通过选项超时参数将设置已个超时属性去连接。
+	no timeout is supplied, the global default timeout setting returned by getdefaulttimeout() is used.
+	如果没有超时被提供，默认使用全局超时的getdefaulttimeout()方法。
+	If supplied, source_address must be a 2-tuple (host, port) for the socket to bind to as its source address before 
+	如果支持，source_address必须是个二元组，目的是soocket连接前要去绑定源地址。
+	connecting. If host or port are ‘’ or 0 respectively the OS default behavior will be used.
+	如果留空将默认操作系统分配。
+	New in version 2.6.
+	
+	Changed in version 2.7: source_address was added.	
+
+	
+socket.getaddrinfo(host, port[, family[, socktype[, proto[, flags]]]])
+	Translate the host/port argument into a sequence of 5-tuples that contain all the necessary arguments for creating a 
+	主机/端口参数写入到一个5元祖的序列 包含了创建一个socket连接服务的所有参数。
+	socket connected to that service. host is a domain name, a string representation of an IPv4/v6 address or None. port 
+	主机是一个域名，Ipv4/IPv6地址用一个字符串来表示或None.
+	is a string service name such as 'http', a numeric port number or None. By passing None as the value of host and 
+	端口是一个字符服务名比如"http",一个数字端口或None.这个空也是一个主机值和端口，
+	port, you can pass NULL to the underlying C API.
+	你可以通过空传到底层的C API。
+	The family, socktype and proto arguments can be optionally specified in order to narrow the list of addresses 
+	这个族，socketype和proto参数可以按可选的顺序指定返回有限的地址列表。
+	returned. By default, their value is 0, meaning that the full range of results is selected. The flags argument can be 
+	默认，他们的值是0，结果是可选的。标志参数
+	one or several of the AI_* constants, and will influence how results are computed and returned. Its default value is 
+	能指定一个或多个AI_*常量，计算返回时对结果有所影响。默认值时0.
+	0. For example, AI_NUMERICHOST will disable domain name resolution and will raise an error if host is a domain name.
+	这个例子，AI_NUMERICHOST 将关闭域名解析功能并将抛出错误，如果主机时一个域名。
+	
+	The function returns a list of 5-tuples with the following structure:
+	函数返回一个5元组列表看下面的结构:
+	(family, socktype, proto, canonname, sockaddr)
+	
+	In these tuples, family, socktype, proto are all integers and are meant to be passed to the socket() function. 
+	在这个元组里，family, socktype, proto are all integers 可以用在socket()方法里。
+	canonname will be a string representing the canonical name of the host if AI_CANONNAME is part of the flags argument; 
+	canonname将用字符串表示 canonical的主机名 如果AI_CANONNAME部分的标记参数；
+	else canonname will be empty. sockaddr is a tuple describing a socket address, whose format depends on the returned 
+	否则 canonname将是个空。sockaddr是一个用元组来描述一个socket地址，返回 AF_INET族依赖的格式。
+	family (a (address, port) 2-tuple for AF_INET, a (address, port, flow info, scope id) 4-tuple for AF_INET6), and is meant to be passed to the socket.connect() method.
+
+	The following example fetches address information for a hypothetical TCP connection to example.org on port 80 
+	下面这个例子获取地址信息是从一个假设的TCP 连接到example.org的80端口
+	(results may differ on your system if IPv6 isn’t enabled):
+	（结果可能有些不同 如果IPv6没有打开）：
+	>>> socket.getaddrinfo("example.org", 80, 0, 0, socket.IPPROTO_TCP)
+	[(10, 1, 6, '', ('2606:2800:220:1:248:1893:25c8:1946', 80, 0, 0)),
+	 (2, 1, 6, '', ('93.184.216.34', 80))]
+	New in version 2.2.
+	
+socket.getfqdn([name])
+	Return a fully qualified domain name for name. If name is omitted or empty, it is interpreted as the local host. To 
+	返回一个域名。如果这个名字省略了或空，它会解析为本地主机。
+	find the fully qualified name, the hostname returned by gethostbyaddr() is checked, followed by aliases for the 
+	找到一个正常的名称，通过gethostbyaddr()方法去获得主机名，其次是主机的别买，
+	host, if available. The first name which includes a period is selected. In case no fully qualified domain name is 
+	如果可用。第一个名字那个包含的周期会被选中。在情况下域名不可用，主机的名字会用通过gethostname()返回。
+	available, the hostname as returned by gethostname() is returned.
+
+	New in version 2.0.
+	新版2.0.
+	
+socket.gethostbyname(hostname)
+	Translate a host name to IPv4 address format. The IPv4 address is returned as a string, such as '100.50.200.5'. If 
+	通过一个主机名得到一个IPv4地址格式。IPv4地址返回的是一个字符串，比如这样”100.50.200.5“.
+	the host name is an IPv4 address itself it is returned unchanged. See gethostbyname_ex() for a more complete 
+	如果主机明是一个IPv4地址返回值是它自己。看这个gethostbyname_ex() 方法，一个更多完整的接口。
+	interface. gethostbyname() does not support IPv6 name resolution, and getaddrinfo() should be used instead for 
+	gethostbyname()不支持IPv6，用getaddrinfo()来代替它，因为支持IPv4/v6
+	IPv4/v6 dual stack support.
+
+socket.gethostbyname_ex(hostname)
+	Translate a host name to IPv4 address format, extended interface. Return a triple (hostname, aliaslist, ipaddrlist) 
+	转换一个主机名为IPv4的地址格式，接口的扩展。返回一三元组（hostname,aliaslist,ipaddrlist）
+	where hostname is the primary host name responding to the given ip_address, aliaslist is a (possibly empty) list of 
+	这儿的主机是响应了主机名对应的IP地址，别名列表是一个列表（可能为 空）某些地址对应这个主机名，
+	alternative host names for the same address, and ipaddrlist is a list of IPv4 addresses for the same interface on 
+	ipaddrlist是一个IPv4地址列表 相同的接口在相同的主机。
+	the same host (often but not always a single address). gethostbyname_ex() does not support IPv6 name resolution, 
+	（时常，但不总是一个单独的IP）。gethostbyname_ex()不支持IPv6
+	and getaddrinfo() should be used instead for IPv4/v6 dual stack support.
+	用getaddrinfo()来代替支持IPv4/v6.
+	
+socket.gethostname()
+	Return a string containing the hostname of the machine where the Python interpreter is currently executing.
+	返回一个包含python解析器当前执行的计算机主机名的字符串。
+	If you want to know the current machine’s IP address, you may want to use gethostbyname(gethostname()). This 
+	如果你想要晓得当前的机器的IP地址，你可能会想到用gethostbyname(gethostname()).
+	operation assumes that there is a valid address-to-host mapping for the host, and the assumption does not always 
+	假设这个操作，这里的主机是一个有效的地址，假设它每次都转换成功哦。
+	hold.
+
+	Note: gethostname() doesn’t always return the fully qualified domain name; use getfqdn() (see above).
+	注意：gethostname()不总是返回一个域名，用getfqdn()(看上面)。
+	
+socket.gethostbyaddr(ip_address)
+	Return a triple (hostname, aliaslist, ipaddrlist) where hostname is the primary host name responding to the given 
+	返回一个三元组（hostname,aliaslist,ipaddrlist）这里的hostname是一个主机名还回应了ip_address,别名
+	ip_address, aliaslist is a (possibly empty) list of alternative host names for the same address, and ipaddrlist is 
+	是一个（有可能是空）具有相同地址可供选择的主机名的列表
+	a list of IPv4/v6 addresses for the same interface on the same host (most likely containing only a single address). 
+	ipaddrlist是一个在相同主机接口IPv4/v6的地址列表。（大多数只包含了一个单一地址）
+	To find the fully qualified domain name, use the function getfqdn(). gethostbyaddr() supports both IPv4 and IPv6.
+	找到完全合格的域名，使用函数getfqdn().gethostbyaddr() 支持IPv4和IPv6.
+	
+socket.getnameinfo(sockaddr, flags)
+	Translate a socket address sockaddr into a 2-tuple (host, port). Depending on the settings of flags, the result can 
+	sockaddr里面是一个二元组（主机，端口）。依赖flags的设置，主机返回的结果包含一个域名或数字地址
+	contain a fully-qualified domain name or numeric address representation in host. Similarly, port can contain a string port name or a numeric port number.
+	端口包含一个字符端口名或一个数字端口。
+	New in version 2.2.
+	
+	
+socket.getprotobyname(protocolname)
+	Translate an Internet protocol name (for example, 'icmp') to a constant suitable for passing as the (optional) 
+	网络协议名字也就是socket()函数的第三个参数。
+	third argument to the socket() function. This is usually only needed for sockets opened in “raw” mode (SOCK_RAW); 
+	                                         大多数情况下只需要sockets打开raw模式；
+	for the normal socket modes, the correct protocol is chosen automatically if the protocol is omitted or zero.
+	正常的oscket模式，协议当前自动给选择 如果这个协议省略了或0.
+	
+socket.getservbyname(servicename[, protocolname])
+	Translate an Internet service name and protocol name to a port number for that service. The optional protocol name, 
+	协议名和服务名在服务器上个知识一个端口号。协议选项名，假设指定了，应该是tcp或udp, 其它的都不会被匹配。
+	if given, should be 'tcp' or 'udp', otherwise any protocol will match.	
+	
+socket.getservbyport(port[, protocolname])
+	Translate an Internet port number and protocol name to a service name for that service. The optional protocol name, 
+	网络端口和协议名称都是服务器上的一个服务。协议选项名，
+	if given, should be 'tcp' or 'udp', otherwise any protocol will match.	
+	如果指定了，应该是tcp或udp,其它的豆浆无效。
+	
+socket.socket([family[, type[, proto]]])
+	Create a new socket using the given address family, socket type and protocol number. The address family should be 
+	常见一个新的socket可用使用地址族，socket类型和协议数字。这的地址族应该是AF_INET(默认就是)
+	AF_INET (the default), AF_INET6 or AF_UNIX. The socket type should be SOCK_STREAM (the default), SOCK_DGRAM or 
+	，AF_INER6或AF_UNIX.这个socket类型因该是SOCK_STREAM(默认就是),SOCK_DGRAM或
+	perhaps one of the other SOCK_ constants. The protocol number is usually zero and may be omitted in that case.
+	或许是一个SOCK_常量。这儿协议数字通常是0，或省略不填。
+	
+socket.socketpair([family[, type[, proto]]])
+	Build a pair of connected socket objects using the given address family, socket type, and protocol number. Address 
+	使用指定的地址族来构建连接一对socket对象，socket类型，和协议数字。
+	family, socket type, and protocol number are as for the socket() function above. The default family is AF_UNIX if 
+	地址族，socket类型，和协议数字和上述socket()函数相似。默认地址族是AF_UNIX如果在平台上定义；
+	defined on the platform; otherwise, the default is AF_INET. Availability: Unix.
+	否则，默认是AF_INET。 可用性：Unix.
+	New in version 2.4.
+	
+socket.fromfd(fd, family, type[, proto])
+	Duplicate the file descriptor fd (an integer as returned by a file object’s fileno() method) and build a socket 
+	重复的文件描述符fd(fileno()文件对象方法返回一个整数)和结果来至一个socket对象。
+	object from the result. Address family, socket type and protocol number are as for the socket() function above. The 
+							地址族，socket类型，协议数字和上面的socket()函数相似。
+	file descriptor should refer to a socket, but this is not checked — subsequent operations on the object may fail if 
+	文件描述来源一个socket,这里不能检查后续的操作这个对象可能失败 如果文件描述是个无效的。
+	the file descriptor is invalid. This function is rarely needed, but can be used to get or set socket options on a 
+								这个方法很少需要哦，但是呢，能使用它读取或设置操作socket这个程序的输入或输出
+	socket passed to a program as standard input or output (such as a server started by the Unix inet daemon). The socket is assumed to be in blocking mode. Availability: Unix.
+	假设这个socket是个块。
+	
+socket.ntohl(x)
+	Convert 32-bit positive integers from network to host byte order. On machines where the host byte order is the same 
+	换算一个32为的正整数来至网络主机字节排序。这里计算机的主机字节排序有些相同好比网络字节排序，
+	as network byte order, this is a no-op; otherwise, it performs a 4-byte swap operation.
+	这时一个no-op;否则，它处理一个自己的交换操作。
+socket.ntohs(x)
+	Convert 16-bit positive integers from network to host byte order. On machines where the host byte order is the same 
+	换算16位正整出来至网络的主机字节排序。这里计算机的主机字节排序相同于网络字节排序，这时一个no-op;
+	
+	as network byte order, this is a no-op; otherwise, it performs a 2-byte swap operation.
+	否则，它处理一个2位的交换操作。
+
+socket.htonl(x)
+	Convert 32-bit positive integers from host to network byte order. On machines where the host byte order is the same 
+	从主机上换算32位整数为网络字节排序。主机字节排序上的机器是相同的好比网络字节排序。
+	as network byte order, this is a no-op; otherwise, it performs a 4-byte swap operation.
+                  这个 no-op;否则，它处理一个4字节的交换操作。
+socket.htons(x)
+	Convert 16-bit positive integers from host to network byte order. On machines where the host byte order is the same 
+	从主机换算16位整数位网络字节排序。主机字节排序的机器是相同的好比网络字节排序，这个
+	as network byte order, this is a no-op; otherwise, it performs a 2-byte swap operation.	
+       no-op;否则，它处理一个2字节交换操作。
+	
+socket.inet_aton(ip_string)
+	Convert an IPv4 address from dotted-quad string format (for example, ‘123.45.67.89’) to 32-bit packed binary 
+	换算一个IPv4地址来至dotted-quad格式（比如，‘123.45.67.89’）的32位数据包的二进制格式，
+	format, as a string four characters in length. This is useful when conversing with a program that uses the standard 
+	一个四位字符的长度，这在程序里时很有用的，使用标准的C库和
+	C library and needs objects of type struct in_addr, which is the C type for the 32-bit packed binary this function 
+	需要struct类型对象in_addr,其这个C类型是32位二进制包的这个函数返回。
+	returns.
+
+	inet_aton() also accepts strings with less than three dots; see the Unix manual page inet(3) for details.
+	inet_aton（）接收少于三个点的字符串；详细看Unix手册页 inet(3).
+	If the IPv4 address string passed to this function is invalid, socket.error will be raised. Note that exactly what 
+	如果IPv4字符串地址用这个函数无效，将抛出socket.error.
+	is valid depends on the underlying C implementation of inet_aton().
+	注意恰好这个值依赖以C为实现的inet_aton().
+	inet_aton() does not support IPv6, and inet_pton() should be used instead for IPv4/v6 dual stack support.
+    inet_aton()不支持IPv6,使用instead()来代替因为支持IPv4/IPv6.
+	
+socket.inet_ntoa(packed_ip)
+	Convert a 32-bit packed IPv4 address (a string four characters in length) to its standard dotted-quad string 
+	换算一个32位IPv4地址包（一个长度为4字符） 它标准格式为（例子，”123.45.67.89“）
+	representation (for example, ‘123.45.67.89’). This is useful when conversing with a program that uses the standard 
+												。这个转换在程序中很有用 
+	C library and needs objects of type struct in_addr, which is the C type for the 32-bit packed binary data this 
+	使用这个标准的C库需要一个struct in_addr类型对象，那个C类型为32位二进制包数据 这个函数的一个参数。
+	function takes as an argument.
+
+	If the string passed to this function is not exactly 4 bytes in length, socket.error will be raised. inet_ntoa() 
+	如果这个字符传在函数里不满足4字节的长度，将抛出socket.error.
+	does not support IPv6, and inet_ntop() should be used instead for IPv4/v6 dual stack support.
+	inet_ntoa()不支持IPv6,使用inet_ntoa()来代替因为支持IPv4/IPv6
+	
+socket.inet_pton(address_family, ip_string)
+	Convert an IP address from its family-specific string format to a packed, binary format. inet_pton() is useful when a library or network protocol calls for an object of type struct in_addr (similar to inet_aton()) or struct in6_addr.
+
+	Supported values for address_family are currently AF_INET and AF_INET6. If the IP address string ip_string is invalid, socket.error will be raised. Note that exactly what is valid depends on both the value of address_family and the underlying implementation of inet_pton().
+
+	Availability: Unix (maybe not all platforms).
+
+	New in version 2.3.
+
+socket.inet_ntop(address_family, packed_ip)
+	Convert a packed IP address (a string of some number of characters) to its standard, family-specific string representation (for example, '7.10.0.5' or '5aef:2b::8') inet_ntop() is useful when a library or network protocol returns an object of type struct in_addr (similar to inet_ntoa()) or struct in6_addr.
+
+	Supported values for address_family are currently AF_INET and AF_INET6. If the string packed_ip is not the correct length for the specified address family, ValueError will be raised. A socket.error is raised for errors from the call to inet_ntop().
+
+	Availability: Unix (maybe not all platforms).
+
+	New in version 2.3.
+
+socket.getdefaulttimeout()
+	Return the default timeout in seconds (float) for new socket objects. A value of None indicates that new socket objects have no timeout. When the socket module is first imported, the default is None.
+
+	New in version 2.3.
+
+socket.setdefaulttimeout(timeout)
+	Set the default timeout in seconds (float) for new socket objects. A value of None indicates that new socket objects have no timeout. When the socket module is first imported, the default is None.
+
+	New in version 2.3.
+
+socket.SocketType
+	This is a Python type object that represents the socket object type. It is the same as type(socket(...)).	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
