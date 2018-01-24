@@ -19,13 +19,13 @@ zone "xxx.com" IN {
 
 3.添加区域文件/var/named/xxx.zone
 $TTL	86400
-@	IN	SOA	meilele.com.	ns.meilele.com.	(
+@	IN	SOA	xxx.com.	ns.xxx.com.	(
 			2014030719
 			3600
 			300
 			1W
 			60 )
-@	IN	NS	ns.meilele.com.
+@	IN	NS	ns.xxx.com.
 ns	IN	A	192.168.0.62
 py	IN	A	192.168.0.17
 
