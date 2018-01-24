@@ -1,0 +1,33 @@
+1.安装
+ yum -y install bind bind-utils.x86_64
+
+2.清空/etc/named.conf配置文件,添加以下内容
+options {
+        directory       "/var/named";
+        dump-file       "/var/named/data/cache_dump.db";
+        statistics-file "/var/named/data/named_stats.txt";
+        forward First;
+        forwarders      {61.139.2.69;202.98.96.68; };
+};
+
+zone "xxx.com" IN {
+        type master;
+        file "meilele.zone";
+        check-names ignore;
+};
+
+
+3.添加区域文件/var/named/xxx.zone
+$TTL	86400
+@	IN	SOA	meilele.com.	ns.meilele.com.	(
+			2014030719
+			3600
+			300
+			1W
+			60 )
+@	IN	NS	ns.meilele.com.
+ns	IN	A	192.168.0.62
+py	IN	A	192.168.0.17
+
+4.启动
+/etc/init.d/named start
