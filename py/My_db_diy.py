@@ -10,6 +10,12 @@ try:
 except:
     import pickle
 
+class ConnectError(Exception):
+    def __init__(self,msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
+
 class My_db_div_danlie(object):
     _instance = None
     def __new__(cls, *args, **kwargs):
@@ -38,7 +44,7 @@ class My_db_diy(My_db_div_danlie):
 
     def connect(self):
         if not self._is_db_diy_file():
-            return "connect is faile,please runing db_init() "
+            raise ConnectError("connect is faile,please runing db_init() ")
         else:
             db_file = open(self.db_diy_file,"rb")
             pload = pickle.load(db_file)
@@ -53,7 +59,6 @@ class My_db_diy(My_db_div_danlie):
         return pdump
 
     def _is_table(self,table):
-        print  self.obj
         if table not in self.obj:
             return False
         else:
@@ -85,7 +90,6 @@ class My_db_diy(My_db_div_danlie):
         if not self._is_table(table):
             return False
         else:
-
             return self.obj[table].remove(self.obj[table][index])
 
 
