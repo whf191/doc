@@ -1,0 +1,48 @@
+FROM frolvlad/alpine-python3 
+ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/lib:/usr/lib
+RUN mkdir -p /root/.pip
+WORKDIR /home
+
+#更新apk源
+RUN >/etc/apk/repositories && echo "https://mirrors.aliyun.com/alpine/v3.7/main/" > /etc/apk/repositories \
+    && echo "https://mirrors.aliyun.com/alpine/v3.7/community/ > /etc/apk/repositories"
+
+
+RUN echo "[global]" >>/root/.pip/pip.conf && echo "index-url = http://mirrors.aliyun.com/pypi/simple/" >>/root/.pip/pip.conf \
+         && echo "[install]" >>/root/.pip/pip.conf && echo "trusted-host=mirrors.aliyun.com" >>/root/.pip/pip.conf
+
+RUN apk --update  --no-cache  add libxml2-dev libxslt-dev libffi-dev gcc musl-dev libgcc openssl-dev curl
+RUN apk --no-cache add  \
+                       build-base \
+                       python3-dev \
+                       jpeg-dev \
+                       zlib-dev \
+                       freetype-dev \
+                       lcms2-dev \
+                       openjpeg-dev \
+                       tiff-dev \
+                       tk-dev \
+                       tcl-dev
+
+RUN apk  --no-cache  add jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
+
+
+
+ADD ./huigeblog.tar .
+
+WORKDIR /home/huigeblog
+
+RUN pip install -r requirements.txt  --no-cache-dir
+
+
+#RUN python manage.py db init
+#RUN python manage.py db migrate
+#RUN python manage.py db upgrade
+
+#RUN python manage.py create_cms_user -u huigege -p 123456 -e 163.com		
+
+#EXPOSE  5000
+
+
+#CMD [ "/bin/sh", "-c","apk add --no-cache python3 &&     python3 -m ensurepip &&     rm -r /usr/lib/python*/ensurepip &&     pip3 install --upgrade pip setuptools &&     if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi &&     if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi &&     rm -r /root/.cache"]
+
