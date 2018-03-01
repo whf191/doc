@@ -1,0 +1,134 @@
+{%  extends "webshell/index.html"  %}
+
+
+
+
+{% block content  %}
+
+	
+
+    <div class="table-responsive">
+	<table class="table">
+		
+
+		<thead>
+			<tr>
+				<th>主机</th>
+				<!-- <th>考试编号</th> -->
+
+				<th>事件</th>
+				<th>执行</th>
+			</tr>
+		</thead>
+		<tbody>
+			
+		
+		
+			<tr>
+					
+					 <td> <select id="host" class="form-control"  onchange="get_hostshijian()">
+						<option  value="feiji">请选择</option>
+						  {%  for i3 in zhuji  %}
+                        <option  value={{ i3.0 }}>{{ i3.1 }}</option>
+						  {% endfor %}
+						 
+                      </select>
+		          </td>
+				  
+				  	 <td> <div id="zhi"> </div>
+		          </td>
+			
+				  
+				<td><button type="button" class="btn btn-danger" id="zhixing" onclick="zhixing()">执行</button></td>
+
+			</tr>   
+
+		</tbody>
+
+</table>
+
+</div>
+<div id="get_cj_types">
+  
+
+<div>
+
+<script>
+
+function get_hostshijian(){
+	var get_val;
+	get_val = $('#host').val();
+	if (get_val === "feiji") {
+	      $("#zhi").html("");
+	   
+	}
+	else{
+
+	get_shijian(get_val);
+	
+	};
+	
+	
+
+};
+
+
+function get_shijian(pk){
+     $.ajax({url:'/get_shijian/',error:function(xhr){
+         alert("错误提示:" + xhr.status + "" + xhr.statusText);
+        
+
+   },     type:'POST',data:{pk:pk},
+	  success:function(data,textStatus){
+	  $("#zhi").html("");
+	  $("#zhi").html(data);
+	  
+
+
+   }
+
+   });
+
+};
+
+function zhixing(){
+	var host_pk;
+	var shijian_pk;
+	
+	host_pk = $('#host').val();
+	shijian_pk = $('#shijian').val();
+	
+	if (host_pk != "feiji" && shijian_pk != "feiji" ){
+	
+		get_zhixing(host_pk,shijian_pk);
+	
+	}
+
+	
+
+};
+
+
+function get_zhixing(host_pk,shijian_pk){
+         $.ajax({url:'/get_zhixing/',error:function(xhr){
+         alert("错误提示:" + xhr.status + "" + xhr.statusText);
+        
+
+   },     type:'POST',data:{host_pk:host_pk,shijian_pk:shijian_pk},
+	  success:function(data,textStatus){
+		  //$("#zhi").html("");
+		  //$("#zhi").html(data);
+			alert(data);
+        }
+
+   });
+
+};
+
+
+
+
+
+</script>
+
+{%  endblock %}

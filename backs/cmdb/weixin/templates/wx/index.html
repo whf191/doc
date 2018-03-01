@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+   <head>
+	   <meta charset="UTF-8">
+      <title>运维移动版</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <!-- 引入 Bootstrap -->
+      <link href="/static/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/static/jquery-confirm.min.css">
+   </head>
+   <body>
+   <!--  导航部门  -->
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-md-12">
+               <nav class="navbar navbar-default" role="navigation">
+	<div class="container-fluid">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse"
+				data-target="#example-navbar-collapse">
+			<span class="sr-only">切换导航</span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+		</button>
+		<a class="navbar-brand" href="#">自动化运维</a>
+	</div>
+	<div class="collapse navbar-collapse" id="example-navbar-collapse">
+		<ul class="nav navbar-nav">
+           {% block daohang %}
+
+           {%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+
+           {% endblock %}
+            <!--
+            <li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					Java <b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="/java8686/">java8686</a></li>
+					<li><a href="#">java8726</a></li>
+					<li><a href="#">crm</a></li>
+				</ul>
+
+			</li>
+			 -->
+		</ul>
+	</div>
+	</div>
+</nav>
+
+
+            </div>
+
+
+            </div>
+
+           <!--  context部分 -->
+         <div class="row">
+            <div class="col-md-12">
+            <div  id="box1" >
+                {% block content %} <b>Featrue ...</b><br> <b> Robust restarting for applications</b>{% endblock  %}
+
+            </div>
+
+
+         </div>
+
+
+
+
+         </div>
+
+</div>
+
+      <script src="/static/jquery.js"></script>
+
+      <script src="/static/bootstrap.min.js"></script>
+
+<script src="/static/jquery-confirm.min.js"></script>
+   <script>
+
+
+
+$(document).ready(function(){
+  $("#go_bt1").click(function(){
+            tishikuang()
+            //post_shell()
+
+ } );
+  
+//jq..end....
+       });
+
+
+
+	   
+//发版部分js代码
+
+function faban_shell(pk,leixing,fa_hui){
+	//隐藏发版按钮...
+	 $("#faban_bt1").attr('disabled','');
+    $.ajax({url:'/php_faban/',error:function(xhr){
+         alert("错误111提示:" + xhr.status + "" + xhr.statusText);
+         $("#faban_bt1").removeAttr("disabled");
+
+   },     type:'POST',data:{leixing:leixing,pk:pk,fa_hui:fa_hui},
+   success:function(data,textStatus){
+      alert("消息提示:  " + data );
+	 
+      $("#faban_bt1").removeAttr("disabled");
+	   window.location.reload();
+   }
+
+   });
+
+	
+	
+};
+
+//发版提示代码...
+
+function fabantishikuang(pk,leixing,fa_hui){
+ $.confirm({
+    title: '亲，确认你的操作...!',
+    content: '当前选择的发版类型-->:'+ $("#bt_leixing").text(),
+    buttons: {
+        发版: function () {
+             $.confirm({
+                      title: '你确定要发版这个应用?',
+                       content: '发版前选择发版类型是-->:'+ $("#bt_leixing").text() ,
+                        buttons: {
+                            确认: function () {
+                               faban_shell(pk,leixing,fa_hui);
+                            },
+                            取消发版: function () {
+                                $.alert('取消!');
+
+                            }
+							}
+                  });
+        },
+        取消操作: function () {
+            $.alert('Canceled!');
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+//end...
+};
+
+//发版审核提示框
+function fabanshehetishikuang(pk){
+
+ $.confirm({
+    title: '亲，确认你的操作...!',
+    content: '发版审核提示,是告诉相关程序员，版本已成功发布',
+    buttons: {
+        确认: function () {
+             $.confirm({
+                      title: '你确定要审核这个应用?',
+                       content: '是告诉相关程序员，版本已成功发布' ,
+                        buttons: {
+                            确认审核: function () {
+                               faban_shenhe(pk);
+                            },
+                            取消审核: function () {
+                                $.alert('取消!');
+
+                            }
+							}
+                  });
+        },
+        取消操作: function () {
+            $.alert('Canceled!');
+        }
+    }
+});
+
+
+
+};
+
+//发版审核执行函数
+function faban_shenhe(pk){
+   	//隐藏发版审核按钮...
+	 $("#faban_shenhe1").attr('disabled','');
+    $.ajax({url:'/faban_shenhe/',error:function(xhr){
+         alert("错误111提示:" + xhr.status + "" + xhr.statusText);
+         $("#faban_shenhe1").removeAttr("disabled");
+
+   },     type:'POST',data:{pk:pk},
+   success:function(data,textStatus){
+      alert("消息提示:  " + data );
+	 
+      $("#faban_shenhe1").removeAttr("disabled");
+	   window.location.reload();
+   }
+
+   });
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//发版提示框..............end................
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function post_shell(rf){
+    //隐藏go按钮
+    $("#go_bt1").attr('disabled','');
+
+   $.ajax({url:'/shell/',error:function(xhr){
+         alert("错误111提示:" + xhr.status + "" + xhr.statusText);
+         $("#go_bt1").removeAttr("disabled");
+
+   },     type:'POST',data:{leixing_duankou:$("#bt_leixing_duankou").text(),zhuji:$("#st").val(),rf:rf},
+   success:function(data,textStatus){
+      alert("消息提示:  " + data );
+      $("#go_bt1").removeAttr("disabled");
+   }
+
+   });
+
+
+
+
+//end ...
+ }
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+function tishikuang(){
+ $.confirm({
+    title: '亲，确认你的操作...!',
+    content: '当前选择的端口是-->:'+ $("#bt_leixing_duankou").text() + "" + "主机:" + $("#st").find("option:selected").text() ,
+    buttons: {
+        重启应用: function () {
+             $.confirm({
+                      title: '你确定要重启这个应用?',
+                       content: '重启前选择的端口是-->:'+ $("#bt_leixing_duankou").text() + "" + "主机:" + $("#st").find("option:selected").text() ,
+                        buttons: {
+                            重启应用: function () {
+                               post_shell("restart");
+                            },
+                            取消重启应用: function () {
+                                $.alert('取消!');
+                            }
+							}
+                  });
+        },
+        取消操作: function () {
+            $.alert('Canceled!');
+        },
+        somethingElse: {
+            text: '关闭应用',
+            btnClass: 'btn-blue',
+            keys: ['enter', 'shift'],
+            action: function(){
+                         $.confirm({
+                      title: '你确定要关闭这个应用?',
+                       content: '关闭前选择的端口是-->:'+ $("#bt_leixing_duankou").text() + "" + "主机:" + $("#st").find("option:selected").text() ,
+                        buttons: {
+                            关闭应用: function () {
+                                post_shell("stop");
+                            },
+                            取消应用: function () {
+                                $.alert('取消!');
+                            }
+							}
+                  });
+            }
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+//end...
+}
+
+
+
+
+   </script>
+
+
+
+   </body>
+</html>

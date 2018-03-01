@@ -1,0 +1,41 @@
+{%  extends "index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block content  %}
+
+{% if s %}
+    {% for i in s %}
+<p>  {{i}} </p>
+{% endfor %}
+
+{% endif %}
+
+</div>
+
+
+
+{%  endblock %}

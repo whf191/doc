@@ -1,0 +1,93 @@
+{%  extends "2/index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block welcome %}
+   <b>欢迎:{{ s_yonghu }} 的到来...</b>
+
+{% endblock  %}
+
+{% block content  %}
+
+	
+
+<div>
+    <div class="table-responsive">
+	<table class="table">
+		<thead>
+			<tr>
+
+				<th>学生</th>
+				<th>科目</th>
+				<th>成绩走势</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+
+				<td>
+                      <select id="xuesheng" class="form-control">
+
+						  {%  for i in xueshengs  %}
+                        <option  value={{ i.0 }}>{{ i.1 }}</option>
+						  {% endfor %}
+						 
+                      </select>
+
+                </td>
+				
+				<td>
+                      <select id="kemu" class="form-control">
+
+						  {%  for i2 in kemus  %}
+                        <option  value={{ i2.0 }}>{{ i2.1 }}</option>
+						  {% endfor %}
+						 
+                      </select>
+
+                </td>
+				
+				
+				
+				<td><button onclick="cj_zoushi()"  type="button" class="btn btn-danger" id="zhoushi">查询</button></td>
+			</tr>
+
+		</tbody>
+</table>
+</div>
+
+<!--  成绩走势图...  -->
+
+<div id="chengjizoushi" style=" height: 300px; margin: 0 auto"></div>
+
+
+
+
+</div>
+
+
+
+{%  endblock %}

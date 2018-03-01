@@ -1,0 +1,81 @@
+{%  extends "2/index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block welcome %}
+   <b>欢迎:{{ s_yonghu }} 的到来...</b>
+
+{% endblock  %}
+
+{% block content  %}
+
+	
+
+    <div class="table-responsive">
+	<table class="table">
+		
+
+		<thead>
+			<tr>
+				<th>学生</th>
+				<!-- <th>考试编号</th> -->
+
+				<th>查询</th>
+			</tr>
+		</thead>
+		<tbody>
+			
+		
+		
+			<tr>
+			
+					 <td> <select id="s_sheng" class="form-control">
+
+						  {%  for i3 in x_sheng  %}
+                        <option  value={{ i3.0 }}>{{ i3.1 }}</option>
+						  {% endfor %}
+						 
+                      </select>
+		          </td>
+			
+
+				<td><button type="button" class="btn btn-danger" id="chengji_bt122" onclick="cj_chaxun2()">查询</button></td>
+
+			</tr>   
+
+		</tbody>
+
+</table>
+
+</div>
+<div id="get_cj_types">
+  
+
+<div>
+
+
+
+{%  endblock %}

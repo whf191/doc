@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>django-websocket</title>
+    <script src="http://cdn.static.runoob.com/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript">//<![CDATA[
+    $(function () {
+        $('#connect_websocket').click(function () {
+            if(window.s){
+                window.s.close()
+            }
+            var s = new WebSocket("ws://" + window.location.host + "/echo");
+            s.onopen = function () {
+                console.log('WebSocket open');
+            };
+            s.onmessage = function (e) {
+                console.log('message: ' + e.data);
+                $('#liaotian').append('<p>' + e.data + '</p>');
+		
+			
+				document.getElementById("tail").click();
+				document.getElementById("tail").click();
+				document.getElementById("tail").click();
+            };
+            window.s = s;
+        });
+        $('#send_message').click(function () {
+            if(!window.s){
+                alert("Please connect server.");
+            }else{
+                window.s.send($('#message').val());
+            }
+        });
+        $('#close_websocket').click(function () {
+            if(window.s){
+                window.s.close();
+            }
+        });
+
+    });
+    //]]></script>
+</head>
+<body>
+<!-- <br>
+<input type="text" id="message" value="Hello, World!" />
+<button type="button" id="connect_websocket">Connect websocket</button>
+<button type="button" id="send_message">Send message</button>
+<button type="button" id="close_websocket">Close websocket</button>
+<h1>Received Messages</h1>
+<div id="messagecontainer"> 
+</div>-->
+<div>
+<div  style="border-style:solid;border-width:1px;width:300px;height:200px;overflow-y:auto;">
+<p>聊天中心...</p>
+<a id="tail" href="#b1" ></a>
+<p id="liaotian"> </p>
+
+
+<b id="b1"  "> </b>
+</div>
+<div id="duihuakuang">
+<textarea  id="message" rows="10" cols="30">
+我是一个文本框。 
+</textarea>
+</div>
+<button type="button" id="send_message">发送消息</button>
+<button type="button" id="close_websocket">关闭聊天</button>
+<button type="button" id="connect_websocket">连接聊天</button>
+
+
+</body>
+</html>

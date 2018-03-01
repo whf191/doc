@@ -1,0 +1,61 @@
+{%  extends "wx/index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block content  %}
+    <div class="table-responsive">
+	<table class="table">
+		<caption>welcome to  <button id="bt_leixing_duankou" type="button" class="btn btn-info">{{leixing_duankou}}</button></caption>
+		<thead>
+			<tr>
+
+				<th>主机</th>
+				<th>状态</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+
+				<td>
+                      <select id="st" class="form-control">
+
+						  {%  for i in duankou_ip  %}
+                        <option  value={{ i }}>{{ i }}</option>
+						  {% endfor %}
+						  <option value={{leixing_duankou}}>一键所有主机</option>
+                      </select>
+
+                </td>
+				<td><button type="button" class="btn btn-danger" id="go_bt1">GO...</button></td>
+			</tr>
+
+		</tbody>
+</table>
+</div>
+
+
+
+{%  endblock %}

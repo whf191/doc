@@ -1,0 +1,72 @@
+{%  extends "index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block content  %}
+    <div class="table-responsive">
+	<table class="table">
+		<caption>welcome to  <button id="bt_leixing" type="button" class="btn btn-info">{{t}}</button></caption>
+		<thead>
+			<tr>
+				<th>PK</th>
+				<th>主机</th>
+				<th>状态</th>
+		
+			</tr>
+		</thead>
+		<tbody>
+		{% if faban_list %}
+		
+				{% for i in faban_list  %}
+			<tr>
+				<td >{{i.0}}</td>
+				<td>
+					  {{i.1}} 
+                </td>
+				<td>
+					{% if i.3 == "0"   %}
+				<button type="button" class="btn btn-danger" onclick=fabantishikuang("{{i.0}}","{{i.1}}","{{f}}") id="faban_bt1" >GO...</button></td>
+			{% else  %}	
+			<button type="button" class="btn btn-danger" onclick=fabanshehetishikuang("{{i.0}}") id="faban_shenhe1" >确认审核</button>
+                   {% endif %}
+
+			</tr>
+			   {% endfor %}
+			
+		{% else %}
+		    <h3>当前没有发版任务</h3>
+		 
+		 {%  endif %}
+			
+			
+			
+		</tbody>
+</table>
+</div>
+
+
+
+{%  endblock %}

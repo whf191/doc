@@ -1,0 +1,102 @@
+{%  extends "index.html"  %}
+
+{%  block daohang  %}
+	{%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+{% endblock %}
+
+{% block content  %}
+    <div class="table-responsive">
+	<table class="table">
+		<caption>welcome to  <button id="bt_leixing_duankou" type="button" class="btn btn-info">
+			{{task_biaoji}}
+		</button></caption>
+		<thead>
+			<tr>
+
+
+				<th>标题</th>
+				<th>内容</th>
+				<th>id</th>
+
+				<th>用户</th>
+				<th>状态</th>
+				<th>时间</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for i in tk  %}
+			<tr>
+
+
+				<td>  {{i.1}} </td>
+				<td>  <button id="bt_renwu_xiangxi"   onclick="test('{{i.0}}')" type="button" class="btn btn-info">详情</button> </td>
+				<td> {{i.0}}  </td>
+				<td>  {{i.3}} </td>
+				<td>  {{i.4}} </td>
+				<td>  {{i.5}} </td>
+
+			</tr>
+      {% endfor %}
+
+		</tbody>
+</table>
+		 <script src="https://code.jquery.com/jquery.js"></script>
+		<script>
+
+ function test(a){
+       // $.ajax({url:'/renwuxiangqing/',error:function(xhr){
+       //  alert("错误111提示:" + xhr.status + "" + xhr.statusText);
+
+
+   //},     type:'GET',data:{renwuxiangqing:a},
+    //       success:function(data,textStatus){
+   //			alert("ok..");
+
+  // }
+    //});
+		location.href = "/renwuxiangqing/?renwuxiangqing="+a;
+
+
+
+ };
+
+
+			$(document).ready(function(){
+
+
+
+
+//end....
+       });
+
+
+
+
+		</script>
+
+</div>
+
+
+
+{%  endblock %}

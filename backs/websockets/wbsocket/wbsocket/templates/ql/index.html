@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+   <head>
+	   <meta charset="UTF-8">
+      <title>群聊test 1.1.1</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <!-- 引入 Bootstrap -->
+      <link href="/static/bootstrap.min.css" rel="stylesheet">
+     
+        <link rel="stylesheet" href="/static/jquery-confirm.min.css">
+   </head>
+   <body>
+   <!--  导航部门  -->
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-md-12">
+               <nav class="navbar navbar-default" role="navigation">
+	<div class="container-fluid">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse"
+				data-target="#example-navbar-collapse">
+			<span class="sr-only">切换导航</span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+		</button>
+		<a class="navbar-brand" href="#">群聊test 1.1.1</a>
+	</div>
+	<div class="collapse navbar-collapse" id="example-navbar-collapse">
+		<ul class="nav navbar-nav">
+           {% block daohang %}
+
+           {%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+
+           {% endblock %}
+
+		</ul>
+	</div>
+	</div>
+</nav>
+
+
+            </div>
+
+
+            </div>
+
+           <!--  context部分 -->
+         <div class="row">
+            <div class="col-md-12">
+				<div class="row">
+					<div class="col-md-8"><div id="liaotian_neirong" style="border-style:solid;border-width:1px;width:100%;height:400px;overflow-y:auto;"> 
+							<p id="liaotian"> </p>
+							<p id="b1"> </p>
+							<a id="tail" href="#b1" ></a>
+					</div></div>
+					<div class="col-md-4"><div id="liaotian_yonghu_liebiao" style="border-style:solid;border-width:1px;width:200px;height:400px;overflow-y:auto;" > </div></div>
+				</div>
+				<div class="row">
+					<div class="col-md-8"><div id="liaotian_huihua_chuangkou">  
+							<label for="name">选中的用户</label>
+								<select id="xuanzhong" class="form-control">
+									 <!-- <option>1</option> -->
+									
+									
+								</select>
+					
+						<label for="name">畅聊吧...</label>
+							<textarea id="message"  class="form-control" rows="3"></textarea>
+					
+					</div></div>
+					<div class="col-md-4"><div id="fasong_xiaoxi">
+					<br>
+					<br>
+					<br>
+					<button id="send_message" type="button" class="btn btn-primary">发送消息</button>
+					
+					</div>
+				</div>
+			
+			
+            <div  id="box1" >
+			
+			
+                {% block welcome %}  {% endblock  %}
+                {% block content %} {% endblock  %}
+
+            </div>
+
+
+         </div>
+
+
+
+
+         </div>
+
+</div>
+
+      <script src="/static/jquery.js"></script>
+
+      <script src="/static/bootstrap.min.js"></script>
+
+<script src="/static/jquery-confirm.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+
+
+<script>
+
+
+
+ $(function () {
+        function conn_socket(){
+            if(window.s){
+                window.s.close()
+            }
+			var new_uuid;
+			window.new_uuid = new_uuid;
+			
+            var s = new WebSocket("ws://" + window.location.host + "/qlsocket");
+            s.onopen = function () {
+                console.log('WebSocket open');
+				$('#liaotian').append('<p>' + "成功连接上服务器...等待新用户接入" + '</p>');
+            };
+            s.onmessage = function (e) {
+                console.log('message: ' + e.data);
+				if (window.new_uuid == null ){
+					window.new_uuid = e.data;
+					//alert(window.new_uuid);
+				}
+				else{
+				$('#liaotian').append('<p>' + e.data + '</p>');
+				document.getElementById("tail").click();
+				document.getElementById("tail").click();
+				document.getElementById("tail").click();
+				}
+				
+				
+               
+            };
+            window.s = s;
+        };
+		
+		conn_socket();
+		
+		
+        $('#send_message').click(function () {
+            if(!window.s){
+                alert("Please connect server.");
+            }else{
+			
+				var to_from=$('#xuanzhong').val();
+				var to_message=$('#message').val();
+				var to_from_message=  "[" + "\""+ to_from + "\""+  "," + "\"" + to_message  + "\""   + "]" 
+                window.s.send(to_from_message);
+            }
+        });
+        $('#close_websocket').click(function () {
+            if(window.s){
+                window.s.close();
+            }
+        });
+
+		
+	 //获取在线用户部分
+
+  //编写定时器，循环获取用户列表	
+		
+ function get_user_list(){
+     $.getJSON("/get_ql_user/?pk=" + window.new_uuid , function(data) {
+			var html = '<ul>';
+			//alert(window.new_uuid);
+			for(var i = 0; i < data.length; i++)
+			{
+				html += '<li>' +'<button id="feiji1" type="button" class="btn btn-primary"' + "onclick=" + "xz_yonghu(" + '\'' + data[i]   + '\''  + ','
+				+ '\'' + '新用户' + i +'\''
+				
+				+ ")" +'>' + '新用户' + i + '</button>'  + '</li>';
+				
+				
+			}
+			html += '</ul>';
+			$('#liaotian_yonghu_liebiao').html("");
+			$('#liaotian_yonghu_liebiao').html(html); 
+					});
+ 
+   }
+ 
+ //30秒获取一次   
+var t1 = window.setInterval(get_user_list,3000);
+
+		
+		
+		
+    });
+
+function xz_yonghu(uuid,yonghu){
+		$('#xuanzhong').html("<option value='" +  uuid +"'>" + yonghu  +  "</option>");
+        //alert(uuid);
+
+}; 
+ 
+
+ 
+
+</script>
+
+
+
+   </body>
+</html>

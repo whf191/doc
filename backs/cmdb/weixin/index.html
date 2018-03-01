@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+   <head>
+	   <meta charset="UTF-8">
+      <title>运维移动版</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <!-- 引入 Bootstrap -->
+      <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+   </head>
+   <body>
+   <!--  导航部门  -->
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-md-12">
+               <nav class="navbar navbar-default" role="navigation">
+	<div class="container-fluid">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse"
+				data-target="#example-navbar-collapse">
+			<span class="sr-only">切换导航</span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+		</button>
+		<a class="navbar-brand" href="#">自动化运维</a>
+	</div>
+	<div class="collapse navbar-collapse" id="example-navbar-collapse">
+		<ul class="nav navbar-nav">
+           {% block daohang %}
+
+           {%  if daohangtiao  %}
+
+        {%  for k,v in daohangtiao.items  %}
+	<li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					{{k}} <b class="caret"></b>
+				</a>
+
+
+				<ul class="dropdown-menu">{%  for i in v %}
+					<li><a href={{ i.2 }}>  {{ i.1 }} </a></li>
+					{% endfor %}
+				</ul>
+
+
+			</li>
+			{% endfor %}
+	{% endif %}
+
+
+
+
+           {% endblock %}
+            <!--
+            <li class="dropdown">
+
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					Java <b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="/java8686/">java8686</a></li>
+					<li><a href="#">java8726</a></li>
+					<li><a href="#">crm</a></li>
+				</ul>
+
+			</li>
+			 -->
+		</ul>
+	</div>
+	</div>
+</nav>
+
+
+            </div>
+
+
+            </div>
+
+           <!--  context部分 -->
+         <div class="row">
+            <div class="col-md-12">
+            <div  id="box1" >
+                {% block content %} context...{% endblock  %}
+
+            </div>
+
+
+         </div>
+
+
+
+
+         </div>
+
+</div>
+
+      <script src="https://code.jquery.com/jquery.js"></script>
+
+      <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+   <script>
+
+
+
+$(document).ready(function(){
+  $("#go_bt1").click(function(){
+       alert($("#st").val());
+
+  });
+
+//end....
+       });
+
+
+
+
+   </script>
+
+
+
+   </body>
+</html>
