@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weibo.db.mybatis.xmlmapping">
+    <!-- 鍦╯elect鏍囩涓紪鍐欐煡璇㈢殑SQL璇彞锛� 璁剧疆select鏍囩鐨刬d灞炴�т负getUser锛宨d灞炴�у�煎繀椤绘槸鍞竴鐨勶紝涓嶈兘澶熼噸澶�
+    浣跨敤parameterType灞炴�ф寚鏄庢煡璇㈡椂浣跨敤鐨勫弬鏁扮被鍨嬶紝resultType灞炴�ф寚鏄庢煡璇㈣繑鍥炵殑缁撴灉闆嗙被鍨�
+    resultType="me.gacl.domain.User"灏辫〃绀哄皢鏌ヨ缁撴灉灏佽鎴愪竴涓猆ser绫荤殑瀵硅薄杩斿洖
+    User绫诲氨鏄痷sers琛ㄦ墍瀵瑰簲鐨勫疄浣撶被
+    -->
+    <!-- 
+        鏍规嵁id鏌ヨ寰楀埌涓�涓猽ser瀵硅薄  parameterType="int"   select * from users where id=#{id}
+     -->
+    <select id="getGuanzhuFenshiMyBatis" 
+        resultType="com.weibo.db.tables.GuanzhuFenshiMyBatis">
+        SELECT guanzhu.count guanzhu,fenshi.count fenshi from fenshi ,guanzhu
+    </select>
+     <select id="getContentMyBatis" 
+        resultType="com.weibo.db.tables.ContentMyBatis">
+        select * from content
+    </select>
+</mapper>
+
+
+
