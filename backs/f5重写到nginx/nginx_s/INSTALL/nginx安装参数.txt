@@ -1,0 +1,1 @@
+ --prefix=/usr/local/nginx --with-http_ssl_module --with-stream --with-stream_ssl_module

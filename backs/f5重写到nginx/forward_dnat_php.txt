@@ -1,0 +1,34 @@
+when CLIENT_ACCEPTED {
+   set dport_info [TCP::local_port]
+	if { $dport_info equals 5222 } {
+            pool chat_5222 }
+	elseif { $dport_info equals 7070 } {
+            pool chat_7070 }
+	elseif { $dport_info equals 11210 } {
+            pool memcache_11210 }
+	elseif { $dport_info equals 11211 } {
+           pool memcache_11211 }
+	elseif { $dport_info equals 11212 } {
+            pool memcache_11212 }
+	elseif { $dport_info equals 11213 } {
+            pool memcache_11213 }
+	elseif { $dport_info equals 11214 } {
+            pool memcache_11214 }
+	elseif { $dport_info equals 11215 } {
+            pool memcache_11215 }
+	elseif { $dport_info equals 11216 } {
+            pool memcache_11216 }
+	elseif { $dport_info equals 11217 } {
+            pool memcache_11217 }
+	elseif { $dport_info equals 11218 } {
+            pool memcache_11218 }
+	elseif { $dport_info equals 11219 } {
+            pool memcache_11219 }
+	elseif { $dport_info equals 11220 } {
+            pool memcache_11220 }
+	elseif { $dport_info equals 9200} {
+           pool es_9200 }
+	elseif { $dport_info equals 9300} {
+           pool es_9300 }
+	else { drop }
+}

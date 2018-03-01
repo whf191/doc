@@ -1,0 +1,204 @@
+when HTTP_REQUEST {
+    set host_info [string tolower [HTTP::host]]
+    set uri_info [string tolower [HTTP::uri]]
+	set ireferer [string tolower [HTTP::header Referer]]
+	set iuser_agent [ string tolower [HTTP::header User-Agent]]
+    switch -glob $host_info { 
+	    "www.meilele.com" -
+		"f.meilele.com"	{ 
+	        switch -glob $uri_info {
+			    "/mllws/control/*" {  pool erp_0402 }
+				"/admin/request_storage.php" { pool admin }
+				"/solr_api/message/msg/send.do*" { 
+						if { [class match [IP::remote_addr] equals  indoor_ips]} {
+							pool www }
+						else { drop }
+				}
+				"/pifa*" { HTTP::respond 404 }
+				"/admin_login/*" { pool www }
+				"/ipseek*" { pool ipseek }
+				"/weixin_interface*" { node 192.168.0.2 }
+				"/gotowkd*" { node 192.168.0.2 }
+				"/gotomyweixin*" { node 192.168.0.11 }
+			    default { pool www }     
+		    }					  
+        }
+		"common.meilele.com" {
+			switch -glob [IP::remote_addr] {			
+				"192.168.0.5" {	pool helpcommon }
+				"192.168.0.6" {	pool helpcommon }
+				"192.168.0.13" { pool helpcommon }
+				"192.168.0.16" { pool helpcommon }
+				"192.168.0.17" { pool helpcommon }
+				"192.168.0.154" { pool common_new }
+				default { pool common }
+			}
+		}
+		"store.meilele.com" { pool store }
+		"bi.meilele.com" { node 192.168.0.35 8083 }
+		"aedi.meilele.com" { node 192.168.0.35 8082 }
+		"nc.meilele.com" {node 192.168.0.37 9080 }
+		"img001.mllres.com" { pool image }
+		"img002.mllres.com" { pool image }
+		"img003.mllres.com" { pool image }
+		"img004.mllres.com" { pool image }
+		"img005.mllres.com" { pool image }
+		"18image.mllres.com" { pool image }
+		"static.mllres.com" { node 192.168.0.16 }
+		"static.meilele.com" { node 192.168.0.16 }		
+		"image.meilele.com" {
+            switch -glob $uri_info {
+				"/ipad_down/*" { HTTP::uri [string map {"/ipad_down/" "/down/"} [HTTP::uri]]
+									pool common } 
+				"/api/*" -							
+				"/processImage.php" { HTTP::header replace Host "help.meilele.com"
+								 pool admin }	
+
+				"/lua*" { drop }
+				default { HTTP::header replace Host "image.meilele.com"
+								pool image }
+			}
+		}
+		"zx.meilele.com" { pool zx }    
+		"help.meilele.com" {
+			switch -glob $uri_info {
+					"/admin/auto_login.php*" { drop }
+					"/admin/order.php\?act=list*" { HTTP::redirect https://help.meilele.com/admin/universal_export_detail?code=order_list } 
+					"/neiwang/admin/universal_export_detail*" { HTTP::uri [string map {"/neiwang/admin/universal_export_detail" 
+					"/project_help/admin/universal_export_detail"} [HTTP::uri]]
+										HTTP::header replace Host "common.meilele.com"
+										pool common_new }
+					"/admin/common/profile_ajax.html*" { HTTP::uri [string map {"/admin/common/profile_ajax.html" 
+					"/project_help/admin/common/profile_ajax.html"} [HTTP::uri]]
+										HTTP::header replace Host "common.meilele.com"
+										pool common_new }					
+					default { pool admin }
+					}}
+        "m.meilele.com" {
+				switch -glob $uri_info { 
+					"/app_*" { pool m }
+					"/app*" { pool app_5050 }
+					default { pool m }
+					}}
+        "docrule.meilele.com" {
+					switch -glob $uri_info { 
+						"/offer" { pool docrule }
+						"/start" { pool docrule }
+						"/commit" { pool docrule }
+						"/rollback" { pool docrule }
+						default { HTTP::uri "/serviceopen"
+											pool rule_3030}
+				}}
+          "seller.meilele.com" { 
+			  switch -glob $uri_info { 
+						"/universal_export_detail*" { HTTP::uri [string map {"/universal_export_detail" "/project_seller/universal_export_detail"} [HTTP::uri]]
+											HTTP::header replace Host "common.meilele.com"
+											pool common }
+						default { pool seller }
+						}} 
+          "store.meilele.com" { pool store }
+          "data.meilele.com" { pool data }
+          "club.meilele.com" {
+			switch -glob $uri_info { 
+				"/CallCenterDataExchange" { node 221.237.152.61 80 }
+				"/*" { pool club }
+				}}
+          "www.aimaci.com" { pool aimaci }
+          "www.tonsery.com" -
+          "www.hanfeier.com" -
+          "www.simmear.com" -
+		  "www.timiyore.com" -
+          "www.ceaserpl.com" -
+          "www.cofornia.com" -
+		  "m.hengyer.com" - 
+		  "www.jominro.com" -
+		  "www.mumuyon.com" -
+          "www.hengyer.com" { pool hengyer }
+          "ip.meilele.com" { pool ipseek }	
+          "erp.meilele.com" { pool erp }
+          "crm.meilele.com" { node 192.168.0.106 80 }
+          "testcrm.meilele.com" { node 192.168.0.80 80 }
+          "meilele.com" {
+				HTTP::redirect http://www.[HTTP::host][HTTP::uri] }
+          "img001.mllres.com" -
+          "img002.mllres.com" -
+          "img003.mllres.com" -
+          "img004.mllres.com" -
+          "img005.mllres.com" { HTTP::header replace Host "image.meilele.com" 
+                                pool image }
+          "chat.meilele.com" {
+					switch -glob $uri_info {
+                        "/mchat/*" - 
+                        "/mchat/?*" { pool chat_80 }
+						"/MModemSMS*"	{ HTTP::header replace Host "smscat.meilele.com"
+										node 221.237.152.61 80 }
+						"/Order/*"		{ pool solr_8686 }
+                        "/_a.gif*" { pool chat_80 } 
+                        "/solr-manage/*" { pool solr_8725 }					
+                        "/message/msg/?*" { node 192.168.0.102 8080 }
+                        "/jchat/*" { node 192.168.0.106 8081 }
+                        "/chat_admin/*" { node 192.168.0.106 8081 }
+                        "/chatadmin/*" { pool chat_8296 }
+                        "/plugins/*" { 
+                                           HTTP::header insert x_forwarded_for [HTTP::header http_x_forwarded_for]                                               
+                                            pool chat_9090}
+                        "/chatsolr*" { pool solr_8080 }
+                        "/transfer*" { HTTP::header replace Host "image.meilele.com"
+                                         node 192.168.0.5 80 }
+                        "/phpserver.php*" { HTTP::header replace Host "data.meilele.com"
+                                         node 192.168.0.5 80 }
+                        "/ajax_ajax.html?*" -
+                        "/user/*" -
+                        "/chat_check_order*" { pool www }
+						"/wg/*"			{ pool chat_8296 }
+						"/of_async/*" { HTTP::uri [string map {"/of_async/" "/"} [HTTP::uri]]
+											pool chat_7070								
+						}
+						"/chat_admin/*"  { HTTP::uri [string map {"/chat_admin" "/chatadmin"} [HTTP::uri]]
+											pool chat_8296 } 
+						"/exc/*"		{ pool chat_8296 }
+						"/login.jsp*" {  pool chat_9090 }	
+                        "/*" 	{ pool chat_9090 }				 
+                        default { pool chat_9090 }
+                        }}
+          "supply.meilele.com" {pool supply }
+          "service.meilele.com" { pool service }	
+          "mlldoc.meilele.com" { node 192.168.0.106 80 }
+          "www.jiajumeilele.com" { node 192.168.0.4 80 }
+          "jiajumeilele.com" { node 192.168.0.4 80 }           
+           "file.duokefu.meilele.com" { 
+                    switch -glob $uri_info {
+                        default { node 192.168.0.42 80 }                        
+                    } }
+        "duokefu.meilele.com" {
+            switch -glob $uri_info {
+                        default { node 192.168.0.42 80 }                        
+                    }  }
+		
+          "wechatgateway.meilele.com" {
+            switch -glob $uri_info {
+                        default { node 192.168.0.42 80 }                        
+                    }  }
+
+   
+          "ywweixin.meilele.com" {
+            switch -glob $uri_info {
+                        default { 
+						
+						node 192.168.0.77 80 }                        
+                    }  }
+		
+          "dlog.meilele.com" {
+			switch -glob $uri_info  {
+                               default { 			
+				node 192.168.0.79 80 
+
+				}
+			}
+		  
+		  
+        }
+
+
+
+}}

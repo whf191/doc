@@ -1,0 +1,125 @@
+when HTTP_REQUEST {
+    set host_info [string tolower [HTTP::host]]
+    set uri_info [string tolower [HTTP::uri]]
+    switch -glob $host_info {
+        "rule.meilele.com" {
+            switch -glob $uri_info {
+                "/data/*" {
+				 HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				 pool rule_8082}
+                "/push" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool rule_3201 }
+                "/offer*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool rule_3100 }
+                "/serviceopen*" -
+                "/preview*" - 
+                "/login*" -
+                "/service*" -
+                "/userlist*" -
+                "/servicelist*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool rule_3030 } 
+                "/xmzx_service" { HTTP::uri [string map {"/xmzx_service" "/service"} [HTTP::uri]]
+				     HTTP::header insert X-Forwarded-For [IP::remote_addr]
+                    node 192.168.0.154 3030 }
+                "/xmzx_help_service" { HTTP::uri [string map {"/xmzx_help_service" "/service"} [HTTP::uri]]
+				    HTTP::header insert X-Forwarded-For [IP::remote_addr]
+                    node 192.168.0.154 3030 }
+                default { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool rule_8082 }
+            }
+        }
+		"phpauth.meilele.com" { 
+		HTTP::header insert X-Forwarded-For [IP::remote_addr]
+		pool www }
+		"getimage.meilele.com" {
+			switch -glob [IP::remote_addr] {
+				"192.168.0.5" { node 192.168.0.16 80 }
+				"192.168.0.16" { node 192.168.0.5 80 }
+				delfault { drop }
+			}
+		}
+		"gmimage.meilele.com" {
+			switch -glob [IP::remote_addr] {
+				"192.168.0.5" { node 192.168.0.5 80 }
+				"192.168.0.16" { node 192.168.0.16 80 }
+				delfault { drop }
+			}
+		}
+        "smscat13.meilele.com" { pool solr_8725 }
+        "m.meilele.com" { pool m }
+        "solr.meilele.com" { 
+            switch -glob $uri_info {
+                "/solr/pic_zx/*:30938*" { drop }
+                "/solr/alb_zx/*:30938*" {drop }
+                "/solr/user_zx/*:30938*" { drop }
+                "/solr/topic_zx/*:30938*" { drop }
+                "/solr/wenda/*:30938*" { drop }
+                "/solr/*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8080 }
+                "/wxscanpay*" -
+                "/dubbo_api/escommon/*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8687 }
+                "/logs/*" -
+                "/bitmatrix/*" -
+                "/8686/*" -
+                "/newOrder/*" -
+                "/dubbo_api/*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8686 }
+                "/japplication/*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8296 }
+                "/newjson*" -
+                "/gpurchase*" -
+                "/pingtai*" -
+                "/solr-manage*" -
+                "/english*" -
+                "/dapei*" -
+                "/img*" -
+                "/wholesale*" -
+                "/wap*" -
+                "/product*" -
+                "/pad*" -
+                "/suggestion*" -
+                "/iphone*" -
+                "/mobile*" -
+                "/albums*" -
+                "/ideabooks*" -
+                "/tag-relation*" -
+                "/search*" -
+                "/list*" -
+                "/seek*" -
+                "/solrlikequery*" -
+                "/admin*" -
+                "/quanwugou*" -
+                "/russia*" -
+                "/ybj_chengdu*" -
+                "/zhuangshi*" -
+                "/baidu_picture*" -
+                "/analysis*" -
+                "/ipad*" -
+                "/special_favour*" -
+                "/americanshop*" -
+                "/recommand*" -
+                "/recommend*)" -
+                "/article_recommend*" -
+                "/chengdu*" -
+                "/mll*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8686 }
+                "/all*" { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8726 }
+                default { 
+				HTTP::header insert X-Forwarded-For [IP::remote_addr]
+				pool solr_8725 }
+            }
+        }
+    }
+}

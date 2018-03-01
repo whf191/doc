@@ -1,0 +1,15 @@
+when CLIENT_ACCEPTED {
+    set dport_info [TCP::local_port]
+    if { [class match [IP::remote_addr] equals deny_group]}{
+        drop }
+    elseif { $dport_info equals 8082 } { 
+        pool rule_8082 }
+    elseif { $dport_info equals 3200 } {
+        pool crow }
+    elseif { $dport_info equals 53 } {
+        pool dns }
+    elseif { $dport_info equals 443 } {
+        pool api }
+    elseif { $dport_info equals 5050 } {
+        pool app_5050 }
+}

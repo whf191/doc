@@ -1,0 +1,75 @@
+when HTTP_REQUEST {
+    set host_info [string tolower [HTTP::host]]
+    set uri_info [string tolower [HTTP::uri]]
+
+  
+    switch -glob $host_info {
+		"help.meilele.com" {
+			switch -glob $uri_info {
+                "/api/*" { pool admin }
+                "/admin/auto_login.php*" { drop }
+				"/admin/order_shipping_track.php\?act=info*" { pool admin }
+				"/admin/index.php*" { pool admin}
+				"/js/calendar.php" { pool admin } 
+ 				"/js/calendar.php*" { pool admin } 
+ 				"/attach_upload*" { pool admin } 
+				"/images/*" { 
+						HTTP::header replace Host "image.meilele.com"
+						pool image }
+				"/admin/order.php\?act=list*" { HTTP::redirect https://help.meilele.com/admin/universal_export_detail?code=order_list } 
+				"/neiwang/admin/universal_export_detail*" { HTTP::uri [string map {"/neiwang/admin/universal_export_detail" 			"/project_help/admin/universal_export_detail"} [HTTP::uri]]
+									HTTP::header replace Host "common.meilele.com"
+									node 192.168.0.154 80}
+									
+				"/admin/common/profile_ajax.html*" { HTTP::uri [string map {"/admin/common/profile_ajax.html" 
+					"/project_help/admin/common/profile_ajax.html"} [HTTP::uri]]
+										HTTP::header replace Host "common.meilele.com"
+										pool common_new }						
+				"/admin/order.php*" { pool admin }
+                         
+                                 default { pool admin }                
+                }}		
+				
+		"crm.meilele.com" { node 192.168.0.106 80 }
+		"erp.meilele.com" { 
+			switch -glob $uri_info {
+				"/mllws/control/geteasyuijson?opentapsservice=persistruleresult*"  { drop }
+				"/common/*" { node 192.168.0.106 80 }	
+				"/admin/*" 	{ HTTP::header replace Host "help.meilele.com"
+                                         pool admin }
+                "/_a.gif" { HTTP::header replace Host "solr.meilele.com"
+                        HTTP::uri [string map {"/_a.gif" "/logs/visit/log.do"} [HTTP::uri]]
+                        node 192.168.0.102 80 } 
+				"/ana_js/*" { HTTP::header replace Host "image.meilele.com"
+							HTTP::uri  [string map {"/ana_js" "/js"} [HTTP::uri]]
+                                         pool image }
+				"/*" { node 192.168.0.106 80 }
+			}}
+                       "www.meilele.com" { 
+			switch -glob $uri_info {
+			
+				"/*" { 	
+					                    	set url_www "http://www.meilele.com"
+	
+	                                          append url_www $uri_info
+                                        HTTP::respond 301 Location  $url_www
+					}
+				}
+			}
+
+			                   "zx.meilele.com" { 
+			switch -glob $uri_info {
+			
+				"/*" { 	
+									    	set url_zx "http://zx.meilele.com"
+	                                        append url_zx $uri_info            
+                                        HTTP::respond 301 Location  $url_zx
+					}
+				}
+			}
+			
+	
+			"api.meilele.com" {
+				pool api}
+
+}}
